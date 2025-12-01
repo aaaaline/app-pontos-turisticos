@@ -4,6 +4,7 @@ import { AuthProvider } from "./context/AuthContext";
 import Header from "./components/layout/Header";
 import AuthModal from "./components/layout/AuthModal";
 import Home from "./pages/Home";
+import PontoDetalhesPage from "./pages/PontoDetalhesPage";
 import "./styles/index.css";
 
 function App() {
@@ -20,6 +21,11 @@ function App() {
               <Route
                 path="/"
                 element={<Home onAuthClick={() => setShowAuthModal(true)} />}
+              />
+              <Route
+                path="/ponto/:id"
+                element={<PontoDetalhesPage onAuthClick={() => setShowAuthModal(true)}/>
+                }
               />
             </Routes>
           </main>
