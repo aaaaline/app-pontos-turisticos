@@ -1,5 +1,6 @@
 package com.inf.software_para_persistencia_de_dados.backend_app_pontos_turisticos.controllers;
 
+import com.inf.software_para_persistencia_de_dados.backend_app_pontos_turisticos.dto.HospedagemDTO;
 import com.inf.software_para_persistencia_de_dados.backend_app_pontos_turisticos.entities.Hospedagem;
 import com.inf.software_para_persistencia_de_dados.backend_app_pontos_turisticos.services.HospedagemService;
 import org.springframework.http.ResponseEntity;
@@ -11,35 +12,38 @@ import java.util.List;
 @RequestMapping("/hospedagens")
 public class HospedagemController {
 
-    private final HospedagemService hospedagemService;
+    private final HospedagemService service;
 
-    public HospedagemController(HospedagemService hospedagemService) {
-        this.hospedagemService = hospedagemService;
+    public HospedagemController(HospedagemService service) {
+        this.service = service;
+    }
+
+    @PostMapping
+    public ResponseEntity<Hospedagem> criar(@RequestBody HospedagemDTO dto) {
+        return ResponseEntity.ok(service.create(dto));
     }
 
     @GetMapping
     public ResponseEntity<List<Hospedagem>> listar() {
-        return ResponseEntity.ok(hospedagemService.listar());
+        return ResponseEntity.ok(service.findAll());
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Hospedagem> buscar(@PathVariable Long id) {
-        return ResponseEntity.ok(hospedagemService.buscar(id));
-    }
-
-    @PostMapping
-    public ResponseEntity<Hospedagem> criar(@RequestBody Hospedagem hospedagem) {
-        return ResponseEntity.ok(hospedagemService.criar(hospedagem));
+    public ResponseEntity<Hospedagem> buscarPorId(@PathVariable Long id) {
+        return ResponseEntity.ok(service.findById(id));
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Hospedagem> atualizar(@PathVariable Long id, @RequestBody Hospedagem hospedagem) {
-        return ResponseEntity.ok(hospedagemService.atualizar(id, hospedagem));
+    public ResponseEntity<Hospedagem> atualizar(
+            @PathVariable Long id,
+            @RequestBody HospedagemDTO dto
+    ) {
+        return ResponseEntity.ok(service.update(id, dto));
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deletar(@PathVariable Long id) {
-        hospedagemService.deletar(id);
+        service.delete(id);
         return ResponseEntity.noContent().build();
     }
 }

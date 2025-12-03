@@ -1,6 +1,7 @@
 package com.inf.software_para_persistencia_de_dados.backend_app_pontos_turisticos.controllers;
 
-import com.inf.software_para_persistencia_de_dados.backend_app_pontos_turisticos.dtos.PontoTuristicoDTO;
+import com.inf.software_para_persistencia_de_dados.backend_app_pontos_turisticos.dto.PontoTuristicoDTO;
+import com.inf.software_para_persistencia_de_dados.backend_app_pontos_turisticos.entities.PontoTuristico;
 import com.inf.software_para_persistencia_de_dados.backend_app_pontos_turisticos.services.PontoTuristicoService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -8,7 +9,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/pontos")
+@RequestMapping("/pontos")
 public class PontoTuristicoController {
 
     private final PontoTuristicoService service;
@@ -18,31 +19,31 @@ public class PontoTuristicoController {
     }
 
     @PostMapping
-    public ResponseEntity<PontoTuristicoDTO> create(@RequestBody PontoTuristicoDTO dto) {
-        PontoTuristicoDTO saved = service.create(dto);
-        return ResponseEntity.status(201).body(saved);
+    public ResponseEntity<PontoTuristico> criar(@RequestBody PontoTuristicoDTO dto) {
+        PontoTuristico salvo = service.create(dto);
+        return ResponseEntity.ok(salvo);
     }
 
     @GetMapping
-    public ResponseEntity<List<PontoTuristicoDTO>> list() {
-        return ResponseEntity.ok(service.findAllDto());
+    public ResponseEntity<List<PontoTuristico>> listar() {
+        return ResponseEntity.ok(service.findAll());
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<PontoTuristicoDTO> get(@PathVariable String id) {
-        PontoTuristicoDTO dto = service.findByIdDto(id);
-        if (dto == null) return ResponseEntity.notFound().build();
-        return ResponseEntity.ok(dto);
+    public ResponseEntity<PontoTuristico> buscarPorId(@PathVariable Long id) {
+        return ResponseEntity.ok(service.findById(id));
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<PontoTuristicoDTO> update(@PathVariable String id, @RequestBody PontoTuristicoDTO dto) {
-        PontoTuristicoDTO updated = service.update(id, dto);
-        return ResponseEntity.ok(updated);
+    public ResponseEntity<PontoTuristico> atualizar(
+            @PathVariable Long id,
+            @RequestBody PontoTuristicoDTO dto
+    ) {
+        return ResponseEntity.ok(service.update(id, dto));
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> delete(@PathVariable String id) {
+    public ResponseEntity<Void> deletar(@PathVariable Long id) {
         service.delete(id);
         return ResponseEntity.noContent().build();
     }
