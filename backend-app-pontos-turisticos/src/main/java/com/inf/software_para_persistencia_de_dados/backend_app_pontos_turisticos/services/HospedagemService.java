@@ -1,7 +1,10 @@
 package com.inf.software_para_persistencia_de_dados.backend_app_pontos_turisticos.services;
 
 import com.inf.software_para_persistencia_de_dados.backend_app_pontos_turisticos.entities.Hospedagem;
+import com.inf.software_para_persistencia_de_dados.backend_app_pontos_turisticos.entities.PontoTuristico;
+import com.inf.software_para_persistencia_de_dados.backend_app_pontos_turisticos.exceptions.ResourceNotFoundException;
 import com.inf.software_para_persistencia_de_dados.backend_app_pontos_turisticos.repositories.HospedagemRepository;
+import com.inf.software_para_persistencia_de_dados.backend_app_pontos_turisticos.repositories.PontoTuristicoRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -9,37 +12,41 @@ import java.util.List;
 @Service
 public class HospedagemService {
 
-    private final HospedagemRepository repository;
+    private final HospedagemRepository hospedagemRepository;
+    private final PontoTuristicoRepository pontoTuristicoRepository;
 
-    public HospedagemService(HospedagemRepository repository) {
-        this.repository = repository;
+    public HospedagemService(HospedagemRepository hospedagemRepository, PontoTuristicoRepository pontoTuristicoRepository) {
+        this.hospedagemRepository = hospedagemRepository;
+        this.pontoTuristicoRepository = pontoTuristicoRepository;
+    }
+
+    public Hospedagem create(Hospedagem hospedagem) {
+        PontoTuristico ponto = pontoTuristicoRepository.findById(hospedagem.getIdPontoTuristico())
+                .orElseThrow(() -> new ResourceNotFoundException("Ponto turístico não encontrado"));
+
+        hospedagem.setPontoTuristico(ponto);
+        return hospedagemRepository.save(hospedagem);
     }
 
     public List<Hospedagem> findAll() {
-        return repository.findAll();
+        return hospedagemRepository.findAll();
     }
 
     public Hospedagem findById(Long id) {
-        return repository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Hospedagem não encontrada!"));
-    }
-
-    public Hospedagem save(Hospedagem hospedagem) {
-        return repository.save(hospedagem);
+        return hospedagemRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Hospedagem não encontrada ID: " + id));
     }
 
     public Hospedagem update(Long id, Hospedagem hospedagemAtualizada) {
-        Hospedagem existente = findById(id);
-
-        existente.setNome(hospedagemAtualizada.getNome());
-        existente.setDescricao(hospedagemAtualizada.getDescricao());
-        existente.setLocalizacao(hospedagemAtualizada.getLocalizacao());
-        existente.setFotos(hospedagemAtualizada.getFotos());
-
-        return repository.save(existente);
+        Hospedagem h = findById(id);
+        h.setNome(hospedagemAtualizada.getNome());
+        h.setPreco(hospedagemAtualizada.getPreco());
+        h.setDescricao(hospedagemAtualizada.getDescricao());
+        return hospedagemRepository.save(h);
     }
 
     public void delete(Long id) {
-        repository.deleteById(id);
+        Hospedagem h = findById(id);
+        hospedagemRepository.delete(h);
     }
 }

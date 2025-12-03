@@ -1,6 +1,7 @@
 package com.inf.software_para_persistencia_de_dados.backend_app_pontos_turisticos.services;
 
 import com.inf.software_para_persistencia_de_dados.backend_app_pontos_turisticos.entities.PontoTuristico;
+import com.inf.software_para_persistencia_de_dados.backend_app_pontos_turisticos.exceptions.ResourceNotFoundException;
 import com.inf.software_para_persistencia_de_dados.backend_app_pontos_turisticos.repositories.PontoTuristicoRepository;
 import org.springframework.stereotype.Service;
 
@@ -15,32 +16,29 @@ public class PontoTuristicoService {
         this.repository = repository;
     }
 
+    public PontoTuristico create(PontoTuristico ponto) {
+        return repository.save(ponto);
+    }
+
     public List<PontoTuristico> findAll() {
         return repository.findAll();
     }
 
     public PontoTuristico findById(Long id) {
         return repository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Ponto Turístico não encontrado!"));
-    }
-
-    public PontoTuristico save(PontoTuristico ponto) {
-        return repository.save(ponto);
+                .orElseThrow(() -> new ResourceNotFoundException("Ponto turístico não encontrado com ID: " + id));
     }
 
     public PontoTuristico update(Long id, PontoTuristico pontoAtualizado) {
-        PontoTuristico existente = findById(id);
-
-        existente.setNome(pontoAtualizado.getNome());
-        existente.setDescricao(pontoAtualizado.getDescricao());
-        existente.setLocalizacao(pontoAtualizado.getLocalizacao());
-        existente.setFotos(pontoAtualizado.getFotos());
-        existente.setHospedagens(pontoAtualizado.getHospedagens());
-
-        return repository.save(existente);
+        PontoTuristico p = findById(id);
+        p.setNome(pontoAtualizado.getNome());
+        p.setDescricao(pontoAtualizado.getDescricao());
+        p.setLocalizacao(pontoAtualizado.getLocalizacao());
+        return repository.save(p);
     }
 
     public void delete(Long id) {
-        repository.deleteById(id);
+        PontoTuristico p = findById(id);
+        repository.delete(p);
     }
 }
