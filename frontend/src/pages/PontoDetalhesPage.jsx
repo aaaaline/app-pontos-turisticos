@@ -7,8 +7,6 @@ import {
   Edit,
   Trash2,
   Home,
-  Phone,
-  DollarSign,
   Upload,
   MessageSquare,
 } from "lucide-react";
@@ -17,13 +15,13 @@ import AvaliacaoForm from "../components/pontos/AvaliacaoForm";
 import ComentariosList from "../components/pontos/ComentariosList";
 import HospedagensList from "../components/pontos/HospedagensList";
 import GaleriaFotos from "../components/pontos/GaleriaFotos";
+import PontoFormModal from "../components/pontos/PontoFormModal";
 
 const PontoDetalhesPage = ({ onAuthClick }) => {
   const { id } = useParams();
   const navigate = useNavigate();
   const { isAuthenticated, isAdmin, user } = useAuth();
 
-  // Mock de dados 
   const [ponto] = useState({
     id: 1,
     nome: "Parque Vaca Brava",
@@ -61,16 +59,22 @@ const PontoDetalhesPage = ({ onAuthClick }) => {
 
   const [isFavorite, setIsFavorite] = useState(false);
   const [showAvaliacaoForm, setShowAvaliacaoForm] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
 
   const handleEdit = () => {
-    // TODO: Implementar edição
+    setShowEditModal(true);
+  };
+
+  const handleEditSuccess = (pontoAtualizado) => {
+    // TODO: Atualizar ponto na API e no estado
+    console.log('Ponto atualizado:', pontoAtualizado);
   };
 
   const handleDelete = () => {
-    if (
-      window.confirm("Tem certeza que deseja excluir este ponto turístico?")
-    ) {
-      // TODO: Implementar exclusão
+    if (window.confirm("Tem certeza que deseja excluir este ponto turístico?")) {
+      // TODO: Fazer requisição DELETE para API
+      console.log('Excluindo ponto:', id);
+      alert("Ponto turístico excluído com sucesso!");
       navigate("/");
     }
   };
@@ -170,7 +174,6 @@ const PontoDetalhesPage = ({ onAuthClick }) => {
           </div>
         </div>
 
-        {/* Formulário de Avaliação */}
         {showAvaliacaoForm && (
           <div style={styles.avaliacaoFormContainer}>
             <AvaliacaoForm
@@ -206,7 +209,6 @@ const PontoDetalhesPage = ({ onAuthClick }) => {
               <h2 style={styles.sectionTitle}>Como Chegar</h2>
               <div style={styles.comoChegar}>
                 <p style={styles.description}>{ponto.comoChegar}</p>
-                
                 <button
                   className="btn btn-outline"
                   style={{ marginTop: "1rem" }}
@@ -248,6 +250,13 @@ const PontoDetalhesPage = ({ onAuthClick }) => {
           </div>
         </div>
       </div>
+
+      <PontoFormModal
+        isOpen={showEditModal}
+        onClose={() => setShowEditModal(false)}
+        onSuccess={handleEditSuccess}
+        pontoEdit={ponto}
+      />
     </div>
   );
 };
@@ -323,9 +332,6 @@ const styles = {
     display: "grid",
     gridTemplateColumns: "1fr 350px",
     gap: "2rem",
-    "@media (maxWidth: 968px)": {
-      gridTemplateColumns: "1fr",
-    },
   },
   mainColumn: {
     display: "flex",
@@ -365,13 +371,6 @@ const styles = {
     display: "flex",
     flexDirection: "column",
     gap: "1rem",
-  },
-  coordinates: {
-    padding: "0.75rem",
-    backgroundColor: "var(--bg-secondary)",
-    borderRadius: "6px",
-    fontSize: "0.95rem",
-    color: "var(--text-secondary)",
   },
   uploadBtn: {
     whiteSpace: "nowrap",

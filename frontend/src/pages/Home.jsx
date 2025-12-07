@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Plus } from "lucide-react";
 import SearchBar from "../components/common/SearchBar";
 import PontoCard from "../components/pontos/PontoCard";
+import PontoFormModal from "../components/pontos/PontoFormModal";
 import { useAuth } from "../context/AuthContext";
 
 const Home = ({ onAuthClick }) => {
@@ -9,6 +10,7 @@ const Home = ({ onAuthClick }) => {
   const [pontos, setPontos] = useState([]);
   const [filteredPontos, setFilteredPontos] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
+  const [showPontoModal, setShowPontoModal] = useState(false);
   const pontosPerPage = 12;
 
   // Mock de pontos
@@ -17,7 +19,7 @@ const Home = ({ onAuthClick }) => {
       {
         id: 1,
         nome: "Parque Vaca Brava",
-        descricao:"Um dos principais parques de Goiânia, ideal para caminhadas e atividades ao ar livre.",
+        descricao: "Um dos principais parques de Goiânia, ideal para caminhadas e atividades ao ar livre.",
         cidade: "Goiânia",
         estado: "GO",
         mediaNotas: 4.5,
@@ -124,8 +126,22 @@ const Home = ({ onAuthClick }) => {
     if (!isAuthenticated) {
       onAuthClick();
     } else {
-      // Colocar funcionalidade de adicionar novo ponto turistico
+      setShowPontoModal(true);
     }
+  };
+
+  const handlePontoSuccess = (novoPonto) => {
+    // TODO: Integrar com a API
+    const pontoComId = {
+      ...novoPonto,
+      id: Date.now(),
+      mediaNotas: 0,
+      totalAvaliacoes: 0,
+      imagemPrincipal: "https://via.placeholder.com/400x300?text=Sem+Imagem"
+    };
+    
+    setPontos([pontoComId, ...pontos]);
+    setFilteredPontos([pontoComId, ...filteredPontos]);
   };
 
   const indexOfLastPonto = currentPage * pontosPerPage;
@@ -148,7 +164,7 @@ const Home = ({ onAuthClick }) => {
           </button>
         </div>
 
-        <SearchBar onSearch={handleSearch} onFilterChange={handleFilterChange}/>
+        <SearchBar onSearch={handleSearch} onFilterChange={handleFilterChange} />
 
         {currentPontos.length > 0 ? (
           <>
@@ -160,8 +176,9 @@ const Home = ({ onAuthClick }) => {
 
             {totalPages > 1 && (
               <div style={styles.pagination}>
-                <button onClick={() =>
-                	setCurrentPage((prev) => Math.max(prev - 1, 1))
+                <button
+                  onClick={() =>
+                    setCurrentPage((prev) => Math.max(prev - 1, 1))
                   }
                   disabled={currentPage === 1}
                   className="btn btn-outline"
@@ -174,9 +191,10 @@ const Home = ({ onAuthClick }) => {
                   Página {currentPage} de {totalPages}
                 </span>
 
-                <button onClick={() =>
-                  setCurrentPage((prev) => Math.min(prev + 1, totalPages))
-                }
+                <button
+                  onClick={() =>
+                    setCurrentPage((prev) => Math.min(prev + 1, totalPages))
+                  }
                   disabled={currentPage === totalPages}
                   className="btn btn-outline"
                   style={styles.paginationBtn}
@@ -192,6 +210,12 @@ const Home = ({ onAuthClick }) => {
           </div>
         )}
       </div>
+
+      <PontoFormModal
+        isOpen={showPontoModal}
+        onClose={() => setShowPontoModal(false)}
+        onSuccess={handlePontoSuccess}
+      />
     </div>
   );
 };
@@ -200,7 +224,6 @@ const styles = {
   container: {
     minHeight: "calc(100vh - 80px)",
   },
-
   mainContent: {
     paddingTop: "3rem",
     paddingBottom: "3rem",
@@ -222,7 +245,6 @@ const styles = {
     alignItems: "center",
     gap: "1rem",
   },
-
   pagination: {
     display: "flex",
     justifyContent: "center",
