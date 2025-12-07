@@ -1,12 +1,12 @@
 import { useState } from 'react';
-import { Home, Phone, DollarSign, ExternalLink, Plus } from 'lucide-react';
+import { Home, Phone, DollarSign, ExternalLink, Plus, Edit, Trash2 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
+import HospedagemFormModal from './HospedagemFormModal';
 
 const HospedagensList = ({ pontoId }) => {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, isAdmin } = useAuth();
   
-  // Mock de hospedagens
-  const [hospedagens] = useState([
+  const [hospedagens, setHospedagens] = useState([
     {
       id: 1,
       nome: 'Hotel Central Plaza',
@@ -32,9 +32,12 @@ const HospedagensList = ({ pontoId }) => {
       telefone: '(62) 99876-5432',
       precoMedio: 80,
       tipo: 'hostel',
-      linkReserva: 'https://booking.com'
+      linkReserva: 'https://hostelworld.com'
     }
   ]);
+
+  const [showModal, setShowModal] = useState(false);
+  const [hospedagemEdit, setHospedagemEdit] = useState(null);
 
   const getTipoLabel = (tipo) => {
     const tipos = {
@@ -59,7 +62,37 @@ const HospedagensList = ({ pontoId }) => {
       alert('Faça login para adicionar hospedagens');
       return;
     }
-    // TODO: Abrir modal de adicionar hospedagem
+    setHospedagemEdit(null);
+    setShowModal(true);
+  };
+
+  const handleEditHospedagem = (hospedagem) => {
+    setHospedagemEdit(hospedagem);
+    setShowModal(true);
+  };
+
+  const handleDeleteHospedagem = (id) => {
+    if (!window.confirm('Tem certeza que deseja excluir esta hospedagem?')) return;
+    
+    // TODO: Fazer requisição DELETE para API
+    setHospedagens(hospedagens.filter(h => h.id !== id));
+    alert('Hospedagem excluída com sucesso!');
+  };
+
+  const handleHospedagemSuccess = (novaHospedagem) => {
+    if (hospedagemEdit) {
+      // Atualizar
+      setHospedagens(hospedagens.map(h => 
+        h.id === hospedagemEdit.id ? { ...novaHospedagem, id: h.id } : h
+      ));
+    } else {
+      // Criar
+      const hospedagemComId = {
+        ...novaHospedagem,
+        id: Date.now()
+      };
+      setHospedagens([...hospedagens, hospedagemComId]);
+    }
   };
 
   return (
@@ -71,7 +104,7 @@ const HospedagensList = ({ pontoId }) => {
           style={styles.addBtn}
         >
           <Plus size={18} />
-          Adicionar Hospedagem
+          Adicionar
         </button>
       )}
 
@@ -84,16 +117,39 @@ const HospedagensList = ({ pontoId }) => {
           {hospedagens.map((hospedagem) => (
             <div key={hospedagem.id} style={styles.card}>
               <div style={styles.header}>
-                <h4 style={styles.nome}>{hospedagem.nome}</h4>
-                <span 
-                  style={{
-                    ...styles.tipoBadge,
-                    backgroundColor: getTipoColor(hospedagem.tipo) + '20',
-                    color: getTipoColor(hospedagem.tipo)
-                  }}
-                >
-                  {getTipoLabel(hospedagem.tipo)}
-                </span>
+                <div style={styles.headerLeft}>
+                  <h4 style={styles.nome}>{hospedagem.nome}</h4>
+                  <span 
+                    style={{
+                      ...styles.tipoBadge,
+                      backgroundColor: getTipoColor(hospedagem.tipo) + '20',
+                      color: getTipoColor(hospedagem.tipo)
+                    }}
+                  >
+                    {getTipoLabel(hospedagem.tipo)}
+                  </span>
+                </div>
+                
+                {isAuthenticated && (
+                  <div style={styles.actionButtons}>
+                    <button 
+                      onClick={() => handleEditHospedagem(hospedagem)}
+                      style={styles.iconBtn}
+                      title="Editar"
+                    >
+                      <Edit size={16} color="#007BFF" />
+                    </button>
+                    {isAdmin && (
+                      <button 
+                        onClick={() => handleDeleteHospedagem(hospedagem.id)}
+                        style={styles.iconBtn}
+                        title="Excluir"
+                      >
+                        <Trash2 size={16} color="#dc3545" />
+                      </button>
+                    )}
+                  </div>
+                )}
               </div>
 
               <div style={styles.info}>
@@ -135,6 +191,19 @@ const HospedagensList = ({ pontoId }) => {
           ))}
         </div>
       )}
+
+      {showModal && (
+        <HospedagemFormModal
+          isOpen={showModal}
+          onClose={() => {
+            setShowModal(false);
+            setHospedagemEdit(null);
+          }}
+          onSuccess={handleHospedagemSuccess}
+          hospedagemEdit={hospedagemEdit}
+          pontoId={pontoId}
+        />
+      )}
     </div>
   );
 };
@@ -175,12 +244,18 @@ const styles = {
     alignItems: 'flex-start',
     gap: '0.5rem'
   },
+  headerLeft: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '0.75rem',
+    flex: 1,
+    flexWrap: 'wrap'
+  },
   nome: {
     fontSize: '1rem',
     fontWeight: '600',
     color: 'var(--text-primary)',
-    margin: 0,
-    flex: 1
+    margin: 0
   },
   tipoBadge: {
     fontSize: '0.75rem',
@@ -189,6 +264,21 @@ const styles = {
     borderRadius: '12px',
     textTransform: 'uppercase',
     whiteSpace: 'nowrap'
+  },
+  actionButtons: {
+    display: 'flex',
+    gap: '0.5rem'
+  },
+  iconBtn: {
+    background: 'none',
+    border: 'none',
+    cursor: 'pointer',
+    padding: '0.25rem',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: '4px',
+    transition: 'background 0.2s'
   },
   info: {
     display: 'flex',
