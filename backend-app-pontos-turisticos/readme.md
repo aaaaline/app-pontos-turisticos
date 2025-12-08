@@ -12,7 +12,7 @@ O projeto foi construído utilizando Java 17 e Spring Boot, com a seguinte stack
 - **Lombok:** Redução de código boilerplate;
 - **Maven:** Gerenciamento de dependências e build.
 
-## Persistência de Dados
+### Persistência de Dados
 
 O sistema utiliza uma abordagem híbrida, conforme os requisitos da disciplina:  
 
