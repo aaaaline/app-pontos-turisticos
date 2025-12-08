@@ -1,5 +1,6 @@
 package com.inf.software_para_persistencia_de_dados.backend_app_pontos_turisticos.services;
 
+import com.inf.software_para_persistencia_de_dados.backend_app_pontos_turisticos.dto.HospedagemDTO;
 import com.inf.software_para_persistencia_de_dados.backend_app_pontos_turisticos.entities.Hospedagem;
 import com.inf.software_para_persistencia_de_dados.backend_app_pontos_turisticos.entities.PontoTuristico;
 import com.inf.software_para_persistencia_de_dados.backend_app_pontos_turisticos.exceptions.ResourceNotFoundException;
@@ -7,6 +8,7 @@ import com.inf.software_para_persistencia_de_dados.backend_app_pontos_turisticos
 import com.inf.software_para_persistencia_de_dados.backend_app_pontos_turisticos.repositories.PontoTuristicoRepository;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 @Service
@@ -20,11 +22,15 @@ public class HospedagemService {
         this.pontoTuristicoRepository = pontoTuristicoRepository;
     }
 
-    public Hospedagem create(Hospedagem hospedagem) {
-        PontoTuristico ponto = pontoTuristicoRepository.findById(hospedagem.getIdPontoTuristico())
-                .orElseThrow(() -> new ResourceNotFoundException("Ponto turístico não encontrado"));
+    public Hospedagem create(HospedagemDTO dto) {
+        Hospedagem hospedagem = new Hospedagem();
+        hospedagem.setNome(dto.getNome());
+        hospedagem.setEndereco(dto.getEndereco());
 
-        hospedagem.setPontoTuristico(ponto);
+        if (dto.getPrecoPorNoite() != null) {
+            hospedagem.setPrecoMedio(BigDecimal.valueOf(dto.getPrecoPorNoite()));
+        }
+
         return hospedagemRepository.save(hospedagem);
     }
 
@@ -37,11 +43,15 @@ public class HospedagemService {
                 .orElseThrow(() -> new ResourceNotFoundException("Hospedagem não encontrada ID: " + id));
     }
 
-    public Hospedagem update(Long id, Hospedagem hospedagemAtualizada) {
+    public Hospedagem update(Long id, HospedagemDTO dto) {
         Hospedagem h = findById(id);
-        h.setNome(hospedagemAtualizada.getNome());
-        h.setPreco(hospedagemAtualizada.getPreco());
-        h.setDescricao(hospedagemAtualizada.getDescricao());
+        h.setNome(dto.getNome());
+        h.setEndereco(dto.getEndereco());
+
+        if (dto.getPrecoPorNoite() != null) {
+            h.setPrecoMedio(BigDecimal.valueOf(dto.getPrecoPorNoite()));
+        }
+
         return hospedagemRepository.save(h);
     }
 

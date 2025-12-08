@@ -1,5 +1,6 @@
 package com.inf.software_para_persistencia_de_dados.backend_app_pontos_turisticos.services;
 
+import com.inf.software_para_persistencia_de_dados.backend_app_pontos_turisticos.dto.FotoDTO;
 import com.inf.software_para_persistencia_de_dados.backend_app_pontos_turisticos.entities.Foto;
 import com.inf.software_para_persistencia_de_dados.backend_app_pontos_turisticos.entities.PontoTuristico;
 import com.inf.software_para_persistencia_de_dados.backend_app_pontos_turisticos.exceptions.ResourceNotFoundException;
@@ -20,13 +21,17 @@ public class FotoService {
         this.pontoTuristicoRepository = pontoTuristicoRepository;
     }
 
-    public Foto create(Foto foto) {
-        Long pontoId = foto.getIdPontoTuristico();
+    public Foto create(FotoDTO dto) {
+        Foto foto = new Foto();
+        foto.setUrl(dto.getUrl());
+        foto.setDescricao(dto.getDescricao());
 
-        PontoTuristico ponto = pontoTuristicoRepository.findById(pontoId)
-                .orElseThrow(() -> new ResourceNotFoundException("Ponto turístico não encontrado ID: " + pontoId));
+        if (dto.getPontoTuristicoId() != null) {
+            PontoTuristico ponto = pontoTuristicoRepository.findById(dto.getPontoTuristicoId())
+                    .orElseThrow(() -> new ResourceNotFoundException("Ponto turístico não encontrado"));
+            foto.setPontoTuristico(ponto);
+        }
 
-        foto.setPontoTuristico(ponto);
         return fotoRepository.save(foto);
     }
 
@@ -39,9 +44,10 @@ public class FotoService {
                 .orElseThrow(() -> new ResourceNotFoundException("Foto não encontrada com ID: " + id));
     }
 
-    public Foto update(Long id, Foto fotoAtualizada) {
+    public Foto update(Long id, FotoDTO dto) {
         Foto foto = findById(id);
-        foto.setUrl(fotoAtualizada.getUrl());
+        foto.setUrl(dto.getUrl());
+        foto.setDescricao(dto.getDescricao());
         return fotoRepository.save(foto);
     }
 
