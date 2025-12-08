@@ -3,8 +3,6 @@ package com.inf.software_para_persistencia_de_dados.backend_app_pontos_turistico
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.util.UUID;
-
 @Entity
 @Table(name = "foto")
 @Data
@@ -14,13 +12,12 @@ import java.util.UUID;
 public class Foto {
 
     @Id
-    @GeneratedValue
-    private UUID id;
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
     private String url;
-
     private String nomeArquivo;
-
+    private String descricao;
     private Long tamanhoBytes;
 
     @ManyToOne

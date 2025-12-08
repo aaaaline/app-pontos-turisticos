@@ -2,9 +2,7 @@ package com.inf.software_para_persistencia_de_dados.backend_app_pontos_turistico
 
 import jakarta.persistence.*;
 import lombok.*;
-
 import java.math.BigDecimal;
-import java.util.UUID;
 
 @Entity
 @Table(name = "hospedagem")
@@ -15,19 +13,14 @@ import java.util.UUID;
 public class Hospedagem {
 
     @Id
-    @GeneratedValue
-    private UUID id;
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
     private String nome;
-
-    private String tipo; // hotel, pousada, hostel etc.
-
+    private String tipo;
     private BigDecimal precoMedio;
-
     private String site;
-
     private String endereco;
-
     private String telefone;
 
     @ManyToOne

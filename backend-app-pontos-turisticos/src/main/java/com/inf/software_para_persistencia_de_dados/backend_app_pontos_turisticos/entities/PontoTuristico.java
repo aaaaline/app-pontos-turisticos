@@ -1,18 +1,27 @@
 package com.inf.software_para_persistencia_de_dados.backend_app_pontos_turisticos.entities;
 
-import javax.persistence.*;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
+
+import jakarta.persistence.Id;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Table;
+import jakarta.persistence.Column;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.PrePersist;
+import jakarta.persistence.PreUpdate;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
 
 @Entity
 @Table(name = "ponto_turistico")
 public class PontoTuristico {
 
     @Id
-    @Column(length = 36)
-    private String id;
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
     @Column(nullable = false)
     private String nome;
@@ -31,7 +40,6 @@ public class PontoTuristico {
     @Column(columnDefinition = "text")
     private String comoChegarTexto;
 
-    // relacionamentos: exemplo com hospedagens (se já tem classe Hospedagem)
     @OneToMany(mappedBy = "pontoTuristico", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Hospedagem> hospedagens = new ArrayList<>();
 
@@ -42,7 +50,7 @@ public class PontoTuristico {
     private LocalDateTime updatedAt;
 
     public PontoTuristico() {
-        this.id = UUID.randomUUID().toString();
+        // Construtor vazio - ID será gerado automaticamente pelo banco
     }
 
     @PrePersist
@@ -55,12 +63,9 @@ public class PontoTuristico {
         updatedAt = LocalDateTime.now();
     }
 
-    // getters e setters (gerar no IDE)
-    // ... (coloque todos os getters e setters para cada campo)
-
-    // Exemplos:
-    public String getId() { return id; }
-    public void setId(String id) { this.id = id; }
+    // getters e setters
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
 
     public String getNome() { return nome; }
     public void setNome(String nome) { this.nome = nome; }
