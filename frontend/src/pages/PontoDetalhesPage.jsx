@@ -16,13 +16,14 @@ import ComentariosList from "../components/pontos/ComentariosList";
 import HospedagensList from "../components/pontos/HospedagensList";
 import GaleriaFotos from "../components/pontos/GaleriaFotos";
 import PontoFormModal from "../components/pontos/PontoFormModal";
+import UploadFotoModal from "../components/pontos/UploadFotoModal";
 
 const PontoDetalhesPage = ({ onAuthClick }) => {
   const { id } = useParams();
   const navigate = useNavigate();
   const { isAuthenticated, isAdmin, user } = useAuth();
 
-  const [ponto] = useState({
+  const [ponto, setPonto] = useState({
     id: 1,
     nome: "Parque Vaca Brava",
     descricao:
@@ -60,6 +61,7 @@ const PontoDetalhesPage = ({ onAuthClick }) => {
   const [isFavorite, setIsFavorite] = useState(false);
   const [showAvaliacaoForm, setShowAvaliacaoForm] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
+  const [showUploadModal, setShowUploadModal] = useState(false);
 
   const handleEdit = () => {
     setShowEditModal(true);
@@ -93,6 +95,30 @@ const PontoDetalhesPage = ({ onAuthClick }) => {
       return;
     }
     setShowAvaliacaoForm(!showAvaliacaoForm);
+  };
+
+  const handleUploadFotos = () => {
+    if (!isAuthenticated) {
+      onAuthClick();
+      return;
+    }
+    setShowUploadModal(true);
+  };
+
+  const handleFotosUpdated = () => {
+    // TODO: Recarregar fotos do ponto da API
+    // setPonto({ ...ponto, fotos: novasFotos });
+        
+    const novaFotoMock = {
+      id: Date.now(),
+      url: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800",
+      titulo: "Nova foto adicionada",
+    };
+    
+    setPonto({
+      ...ponto,
+      fotos: [...ponto.fotos, novaFotoMock]
+    });
   };
 
   const canEdit = isAuthenticated && (isAdmin || user?.id === ponto.criadoPor);
@@ -191,13 +217,22 @@ const PontoDetalhesPage = ({ onAuthClick }) => {
                   Fotos ({ponto.fotos.length})
                 </h2>
                 {isAuthenticated && (
-                  <button className="btn btn-outline" style={styles.uploadBtn}>
+                  <button 
+                    onClick={handleUploadFotos}
+                    className="btn btn-outline" 
+                    style={styles.uploadBtn}
+                  >
                     <Upload size={18} />
                     Adicionar Foto
                   </button>
                 )}
               </div>
-              <GaleriaFotos fotos={ponto.fotos} />
+              <GaleriaFotos 
+                pontoId={ponto.id}
+                fotos={ponto.fotos}
+                onAuthClick={onAuthClick}
+                onFotosUpdated={handleFotosUpdated}
+              />
             </section>
 
             <section className="card" style={styles.section}>
@@ -256,6 +291,14 @@ const PontoDetalhesPage = ({ onAuthClick }) => {
         onClose={() => setShowEditModal(false)}
         onSuccess={handleEditSuccess}
         pontoEdit={ponto}
+      />
+
+      <UploadFotoModal
+        isOpen={showUploadModal}
+        onClose={() => setShowUploadModal(false)}
+        pontoId={ponto.id}
+        fotosExistentes={ponto.fotos}
+        onSuccess={handleFotosUpdated}
       />
     </div>
   );
