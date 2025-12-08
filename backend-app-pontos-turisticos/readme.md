@@ -84,4 +84,4 @@ A aplicação estará disponível em: `http://localhost:8080`.
 
 ## Documentação da API
 
-Para detalhes sobre os endpoints e corpos de requisição (JSON), consulte o arquivo [Endpoints - Sistema Web sobre Turismo/Viagens](https://github.com/aaaaline/app-pontos-turisticos/blob/main/docs/endpoints.md)) neste repositório.
+Para detalhes sobre os endpoints e corpos de requisição (JSON), consulte o arquivo [Endpoints - Sistema Web sobre Turismo/Viagens](https://github.com/aaaaline/app-pontos-turisticos/blob/main/docs/endpoints.md) neste repositório.
