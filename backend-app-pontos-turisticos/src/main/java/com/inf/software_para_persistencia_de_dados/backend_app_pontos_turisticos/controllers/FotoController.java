@@ -29,20 +29,20 @@ public class FotoController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Foto> buscarPorId(@PathVariable String id) {
+    public ResponseEntity<Foto> buscarPorId(@PathVariable Long id) {
         return ResponseEntity.ok(service.findById(id));
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<Foto> atualizar(
-            @PathVariable String id,
+            @PathVariable Long id,
             @RequestBody FotoDTO dto
     ) {
         return ResponseEntity.ok(service.update(id, dto));
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deletar(@PathVariable String id) {
+    public ResponseEntity<Void> deletar(@PathVariable Long id) {
         service.delete(id);
         return ResponseEntity.noContent().build();
     }
