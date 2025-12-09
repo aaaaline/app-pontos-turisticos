@@ -1,10 +1,9 @@
 import { useState } from 'react';
-import { X, Upload, Image as ImageIcon, AlertCircle } from 'lucide-react';
+import { X, Upload, AlertCircle } from 'lucide-react';
+import { fotosAPI } from '../../services/api';
 
 const UploadFotoModal = ({ isOpen, onClose, pontoId, onSuccess, fotosExistentes = [] }) => {
   const [arquivos, setArquivos] = useState([]);
-  const [previews, setPreviews] = useState([]);
-  const [titulos, setTitulos] = useState({});
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState('');
 
@@ -26,7 +25,6 @@ const UploadFotoModal = ({ isOpen, onClose, pontoId, onSuccess, fotosExistentes 
 
     // Validar cada arquivo
     const validFiles = [];
-    const newPreviews = [];
 
     for (const file of files) {
       if (!ALLOWED_TYPES.includes(file.type)) {
@@ -48,11 +46,6 @@ const UploadFotoModal = ({ isOpen, onClose, pontoId, onSuccess, fotosExistentes 
   const handleRemoveFile = (index) => {
     const newArquivos = arquivos.filter((_, i) => i !== index);
     setArquivos(newArquivos);
-    
-    const newTitulos = { ...titulos };
-    delete newTitulos[index];
-    setTitulos(newTitulos);
-    
     setError('');
   };
 
@@ -61,25 +54,18 @@ const UploadFotoModal = ({ isOpen, onClose, pontoId, onSuccess, fotosExistentes 
     setError('');
 
     if (arquivos.length === 0) {
-      setError('Selecione um arquivo.');
+      setError('Selecione pelo menos um arquivo.');
       return;
     }
 
     setUploading(true);
 
     try {
-      const formData = new FormData();
-      formData.append('pontoId', pontoId);
+      const uploadPromises = arquivos.map(file => 
+        fotosAPI.upload(pontoId, file)
+      );
 
-      arquivos.forEach((file, index) => {
-        formData.append('fotos', file);
-      });
-
-      // Enviar para a API
-      // await uploadFotos(pontoId, formData);
-      
-      // Simulação de upload (remover quando backend estiver pronto)
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      await Promise.all(uploadPromises);
 
       alert(`${arquivos.length} foto(s) enviada(s) com sucesso!`);
       
@@ -98,8 +84,6 @@ const UploadFotoModal = ({ isOpen, onClose, pontoId, onSuccess, fotosExistentes 
 
   const handleClose = () => {
     setArquivos([]);
-    setPreviews([]);
-    setTitulos({});
     setError('');
     onClose();
   };
@@ -149,6 +133,33 @@ const UploadFotoModal = ({ isOpen, onClose, pontoId, onSuccess, fotosExistentes 
               </span>
             </label>
           </div>
+
+          {arquivos.length > 0 && (
+            <div style={styles.previewContainer}>
+              <h3 style={styles.previewTitle}>
+                Arquivos selecionados ({arquivos.length})
+              </h3>
+              <div style={styles.fileList}>
+                {arquivos.map((file, index) => (
+                  <div key={index} style={styles.fileItem}>
+                    <span style={styles.fileName}>{file.name}</span>
+                    <span style={styles.fileSize}>
+                      {(file.size / 1024 / 1024).toFixed(2)} MB
+                    </span>
+                    {!uploading && (
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveFile(index)}
+                        style={styles.removeFileBtn}
+                      >
+                        <X size={16} />
+                      </button>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
 
           {error && (
             <div style={styles.error}>
@@ -270,50 +281,43 @@ const styles = {
     color: 'var(--text-primary)',
     margin: 0
   },
-  previewGrid: {
-    display: 'grid',
-    gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))',
-    gap: '1rem'
-  },
-  previewItem: {
+  fileList: {
     display: 'flex',
     flexDirection: 'column',
     gap: '0.5rem'
   },
-  previewImageContainer: {
-    position: 'relative',
-    width: '100%',
-    paddingTop: '100%',
-    borderRadius: '8px',
-    overflow: 'hidden',
-    border: '1px solid var(--border-color)'
-  },
-  previewImage: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    width: '100%',
-    height: '100%',
-    objectFit: 'cover'
-  },
-  removeBtn: {
-    position: 'absolute',
-    top: '0.5rem',
-    right: '0.5rem',
-    background: 'rgba(220, 53, 69, 0.9)',
-    color: 'white',
-    border: 'none',
-    borderRadius: '50%',
-    width: '28px',
-    height: '28px',
+  fileItem: {
     display: 'flex',
     alignItems: 'center',
-    justifyContent: 'center',
-    cursor: 'pointer',
-    transition: 'all 0.2s ease'
+    justifyContent: 'space-between',
+    padding: '0.75rem',
+    backgroundColor: 'var(--bg-secondary)',
+    borderRadius: '6px',
+    border: '1px solid var(--border-color)'
   },
-  tituloInput: {
-    fontSize: '0.85rem'
+  fileName: {
+    flex: 1,
+    fontSize: '0.9rem',
+    color: 'var(--text-primary)',
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
+    whiteSpace: 'nowrap',
+    marginRight: '1rem'
+  },
+  fileSize: {
+    fontSize: '0.85rem',
+    color: 'var(--text-secondary)',
+    marginRight: '0.5rem'
+  },
+  removeFileBtn: {
+    background: 'none',
+    border: 'none',
+    color: '#dc3545',
+    cursor: 'pointer',
+    padding: '0.25rem',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center'
   },
   error: {
     display: 'flex',
@@ -329,12 +333,7 @@ const styles = {
     display: 'flex',
     gap: '1rem',
     justifyContent: 'flex-end'
-  },
-  uploadLabelDisabled: {
-    border: '2px dashed #ccc',
-    backgroundColor: '#f5f5f5',
-    cursor: 'not-allowed'
-  }, 
+  }
 };
 
 export default UploadFotoModal;

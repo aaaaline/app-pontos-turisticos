@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import {
   MapPin,
@@ -11,6 +11,7 @@ import {
   MessageSquare,
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
+import { pontosAPI, avaliacoesAPI } from "../services/api";
 import AvaliacaoForm from "../components/pontos/AvaliacaoForm";
 import ComentariosList from "../components/pontos/ComentariosList";
 import HospedagensList from "../components/pontos/HospedagensList";
@@ -23,61 +24,79 @@ const PontoDetalhesPage = ({ onAuthClick }) => {
   const navigate = useNavigate();
   const { isAuthenticated, isAdmin, user } = useAuth();
 
-  const [ponto, setPonto] = useState({
-    id: 1,
-    nome: "Parque Vaca Brava",
-    descricao:
-      "Um dos principais parques de Goiânia, ideal para caminhadas e atividades ao ar livre. O parque conta com área verde, pista de caminhada, ciclovia, playground e muito mais.",
-    cidade: "Goiânia",
-    estado: "GO",
-    pais: "Brasil",
-    latitude: -16.7108822,
-    longitude: -49.2647891,
-    endereco: "Av. T-2, Setor Bueno",
-    comoChegar:
-      "Localizado no Setor Bueno, próximo ao Shopping Flamboyant. Acesso fácil pela Av. T-2.",
-    mediaNotas: 4.5,
-    totalAvaliacoes: 120,
-    criadoPor: 1,
-    fotos: [
-      {
-        id: 1,
-        url: "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=800",
-        titulo: "Vista principal",
-      },
-      {
-        id: 2,
-        url: "https://images.unsplash.com/photo-1501594907352-04cda38ebc29?w=800",
-        titulo: "Área verde",
-      },
-      {
-        id: 3,
-        url: "https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?w=800",
-        titulo: "Pista de caminhada",
-      },
-    ],
-  });
-
+  const [ponto, setPonto] = useState(null);
+  const [error, setError] = useState("");
   const [isFavorite, setIsFavorite] = useState(false);
   const [showAvaliacaoForm, setShowAvaliacaoForm] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showUploadModal, setShowUploadModal] = useState(false);
 
+  useEffect(() => {
+    loadPonto();
+  }, [id]);
+
+  const loadPonto = async () => {
+    try {
+      setError("");
+      
+      const [pontoResponse, mediaResponse] = await Promise.all([
+        pontosAPI.getById(id),
+        avaliacoesAPI.getMedia(id).catch(() => ({ data: 0 }))
+      ]);
+      
+      const pontoData = pontoResponse.data;
+      
+      setPonto({
+        ...pontoData,
+        mediaNotas: mediaResponse.data || 0,
+        totalAvaliacoes: 0, // Backend não retorna total
+        fotos: pontoData.fotos || [],
+        comoChegar: pontoData.comoChegarTexto || ""
+      });
+    } catch (err) {
+      console.error("Erro ao carregar ponto:", err);
+      setError("Erro ao carregar detalhes do ponto turístico.");
+    }
+  };
+
   const handleEdit = () => {
     setShowEditModal(true);
   };
 
-  const handleEditSuccess = (pontoAtualizado) => {
-    // TODO: Atualizar ponto na API e no estado
-    console.log('Ponto atualizado:', pontoAtualizado);
+  const handleEditSuccess = async (pontoAtualizado) => {
+    try {
+      await pontosAPI.update(id, {
+        nome: pontoAtualizado.nome,
+        descricao: pontoAtualizado.descricao,
+        cidade: pontoAtualizado.cidade,
+        estado: pontoAtualizado.estado,
+        pais: pontoAtualizado.pais,
+        latitude: pontoAtualizado.latitude ? parseFloat(pontoAtualizado.latitude) : null,
+        longitude: pontoAtualizado.longitude ? parseFloat(pontoAtualizado.longitude) : null,
+        endereco: pontoAtualizado.endereco,
+        comoChegarTexto: pontoAtualizado.comoChegar
+      });
+      
+      await loadPonto();
+      alert("Ponto atualizado com sucesso!");
+    } catch (err) {
+      console.error("Erro ao atualizar ponto:", err);
+      alert("Erro ao atualizar ponto turístico.");
+    }
   };
 
-  const handleDelete = () => {
-    if (window.confirm("Tem certeza que deseja excluir este ponto turístico?")) {
-      // TODO: Fazer requisição DELETE para API
-      console.log('Excluindo ponto:', id);
+  const handleDelete = async () => {
+    if (!window.confirm("Tem certeza que deseja excluir este ponto turístico?")) {
+      return;
+    }
+
+    try {
+      await pontosAPI.delete(id);
       alert("Ponto turístico excluído com sucesso!");
       navigate("/");
+    } catch (err) {
+      console.error("Erro ao excluir ponto:", err);
+      alert("Erro ao excluir ponto turístico.");
     }
   };
 
@@ -105,21 +124,28 @@ const PontoDetalhesPage = ({ onAuthClick }) => {
     setShowUploadModal(true);
   };
 
-  const handleFotosUpdated = () => {
-    // TODO: Recarregar fotos do ponto da API
-    // setPonto({ ...ponto, fotos: novasFotos });
-        
-    const novaFotoMock = {
-      id: Date.now(),
-      url: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800",
-      titulo: "Nova foto adicionada",
-    };
-    
-    setPonto({
-      ...ponto,
-      fotos: [...ponto.fotos, novaFotoMock]
-    });
+  const handleFotosUpdated = async () => {
+    await loadPonto();
   };
+
+  const handleAvaliacaoSuccess = async () => {
+    await loadPonto();
+  };
+
+  if (error || !ponto) {
+    return (
+      <div style={styles.container}>
+        <div className="container" style={styles.content}>
+          <div style={styles.errorState}>
+            <p>{error || "Ponto turístico não encontrado."}</p>
+            <button onClick={() => navigate("/")} className="btn btn-primary">
+              Voltar para Home
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   const canEdit = isAuthenticated && (isAdmin || user?.id === ponto.criadoPor);
 
@@ -205,6 +231,7 @@ const PontoDetalhesPage = ({ onAuthClick }) => {
             <AvaliacaoForm
               pontoId={ponto.id}
               onClose={() => setShowAvaliacaoForm(false)}
+              onSuccess={handleAvaliacaoSuccess}
             />
           </div>
         )}
@@ -266,13 +293,15 @@ const PontoDetalhesPage = ({ onAuthClick }) => {
           <div style={styles.sidebar}>
             <div className="card" style={styles.infoCard}>
               <h3 style={styles.cardTitle}>Informações</h3>
-              <div style={styles.infoItem}>
-                <Home size={18} color="#6c757d" />
-                <div>
-                  <strong>Endereço</strong>
-                  <p>{ponto.endereco}</p>
+              {ponto.endereco && (
+                <div style={styles.infoItem}>
+                  <Home size={18} color="#6c757d" />
+                  <div>
+                    <strong>Endereço</strong>
+                    <p>{ponto.endereco}</p>
+                  </div>
                 </div>
-              </div>
+              )}
             </div>
 
             <div className="card" style={styles.section}>

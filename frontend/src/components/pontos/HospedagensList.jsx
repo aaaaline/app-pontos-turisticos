@@ -1,43 +1,36 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Home, Phone, DollarSign, ExternalLink, Plus, Edit, Trash2 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
+import { hospedagensAPI } from '../../services/api';
 import HospedagemFormModal from './HospedagemFormModal';
 
 const HospedagensList = ({ pontoId }) => {
   const { isAuthenticated, isAdmin } = useAuth();
   
-  const [hospedagens, setHospedagens] = useState([
-    {
-      id: 1,
-      nome: 'Hotel Central Plaza',
-      endereco: 'Av. Goiás, 1234 - Centro',
-      telefone: '(62) 3241-5678',
-      precoMedio: 250,
-      tipo: 'hotel',
-      linkReserva: 'https://booking.com'
-    },
-    {
-      id: 2,
-      nome: 'Pousada Aconchego',
-      endereco: 'Rua das Flores, 567',
-      telefone: '(62) 3245-9012',
-      precoMedio: 150,
-      tipo: 'pousada',
-      linkReserva: 'https://booking.com'
-    },
-    {
-      id: 3,
-      nome: 'Hostel da Praça',
-      endereco: 'Praça Central, 89',
-      telefone: '(62) 99876-5432',
-      precoMedio: 80,
-      tipo: 'hostel',
-      linkReserva: 'https://hostelworld.com'
-    }
-  ]);
-
+  const [hospedagens, setHospedagens] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [hospedagemEdit, setHospedagemEdit] = useState(null);
+
+  useEffect(() => {
+    loadHospedagens();
+  }, [pontoId]);
+
+  const loadHospedagens = async () => {
+    try {
+      setLoading(true);
+      const response = await hospedagensAPI.getAll();
+      const hospedagensData = response.data || [];
+      const hospedagensDoPonto = hospedagensData.filter(h => 
+        h.pontoTuristico && h.pontoTuristico.id === parseInt(pontoId)
+      );
+      setHospedagens(hospedagensDoPonto);
+    } catch (err) {
+      console.error('Erro ao carregar hospedagens:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const getTipoLabel = (tipo) => {
     const tipos = {
@@ -71,29 +64,51 @@ const HospedagensList = ({ pontoId }) => {
     setShowModal(true);
   };
 
-  const handleDeleteHospedagem = (id) => {
+  const handleDeleteHospedagem = async (id) => {
     if (!window.confirm('Tem certeza que deseja excluir esta hospedagem?')) return;
     
-    // TODO: Fazer requisição DELETE para API
-    setHospedagens(hospedagens.filter(h => h.id !== id));
-    alert('Hospedagem excluída com sucesso!');
-  };
-
-  const handleHospedagemSuccess = (novaHospedagem) => {
-    if (hospedagemEdit) {
-      // Atualizar
-      setHospedagens(hospedagens.map(h => 
-        h.id === hospedagemEdit.id ? { ...novaHospedagem, id: h.id } : h
-      ));
-    } else {
-      // Criar
-      const hospedagemComId = {
-        ...novaHospedagem,
-        id: Date.now()
-      };
-      setHospedagens([...hospedagens, hospedagemComId]);
+    try {
+      await hospedagensAPI.delete(id);
+      await loadHospedagens();
+      alert('Hospedagem excluída com sucesso!');
+    } catch (err) {
+      console.error('Erro ao excluir hospedagem:', err);
+      alert('Erro ao excluir hospedagem. Tente novamente.');
     }
   };
+
+  const handleHospedagemSuccess = async (novaHospedagem) => {
+    try {
+      const hospedagemData = {
+        nome: novaHospedagem.nome,
+        endereco: novaHospedagem.endereco,
+        telefone: novaHospedagem.telefone,
+        tipo: novaHospedagem.tipo,
+        site: novaHospedagem.linkReserva,
+        precoMedio: novaHospedagem.precoMedio,
+        pontoTuristicoId: parseInt(pontoId)
+      };
+
+      if (hospedagemEdit) {
+        await hospedagensAPI.update(hospedagemEdit.id, hospedagemData);
+      } else {
+        await hospedagensAPI.create(hospedagemData);
+      }
+      
+      await loadHospedagens();
+    } catch (err) {
+      console.error('Erro ao salvar hospedagem:', err);
+      alert('Erro ao salvar hospedagem. Tente novamente.');
+    }
+  };
+
+  if (loading) {
+    return (
+      <div style={styles.container}>
+        <p style={styles.loadingText}>Carregando hospedagens...</p>
+      </div>
+    );
+  }
 
   return (
     <div style={styles.container}>
@@ -167,17 +182,19 @@ const HospedagensList = ({ pontoId }) => {
                   </div>
                 )}
 
-                <div style={styles.infoItem}>
-                  <DollarSign size={16} color="#6c757d" />
-                  <span>
-                    <strong>R$ {hospedagem.precoMedio.toFixed(2)}</strong> / noite (média)
-                  </span>
-                </div>
+                {hospedagem.precoMedio && (
+                  <div style={styles.infoItem}>
+                    <DollarSign size={16} color="#6c757d" />
+                    <span>
+                      <strong>R$ {parseFloat(hospedagem.precoMedio).toFixed(2)}</strong> / noite (média)
+                    </span>
+                  </div>
+                )}
               </div>
 
-              {hospedagem.linkReserva && (
+              {hospedagem.site && (
                 <a 
-                  href={hospedagem.linkReserva}
+                  href={hospedagem.site}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="btn btn-primary"
@@ -224,6 +241,12 @@ const styles = {
     gap: '1rem'
   },
   emptyState: {
+    textAlign: 'center',
+    color: 'var(--text-secondary)',
+    padding: '2rem 1rem',
+    fontSize: '0.95rem'
+  },
+  loadingText: {
     textAlign: 'center',
     color: 'var(--text-secondary)',
     padding: '2rem 1rem',

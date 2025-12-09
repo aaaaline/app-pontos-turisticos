@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Download, Upload, FileJson, FileType, FileCode, CheckCircle, AlertCircle, ArrowLeft } from 'lucide-react';
+import { Download, Upload, FileJson, FileType, FileCode, CheckCircle, AlertCircle } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { pontosAPI } from '../services/api';
 
 const AdminPage = () => {
   const navigate = useNavigate();
@@ -18,100 +19,33 @@ const AdminPage = () => {
     return null;
   }
 
-  const pontosMock = [
-    {
-      id: 1,
-      nome: "Parque Vaca Brava",
-      descricao: "Um dos principais parques de Goiânia",
-      cidade: "Goiânia",
-      estado: "GO",
-      pais: "Brasil",
-      latitude: -16.7108822,
-      longitude: -49.2647891,
-      endereco: "Av. T-2, Setor Bueno"
-    },
-    {
-      id: 2,
-      nome: "Feira da Lua",
-      descricao: "Tradicional feira de artesanato",
-      cidade: "Goiânia",
-      estado: "GO",
-      pais: "Brasil",
-      latitude: -16.6869,
-      longitude: -49.2648,
-      endereco: "Praça do Sol"
-    }
-  ];
-
-  const convertToJSON = (data) => {
-    return JSON.stringify(data, null, 2);
-  };
-
-  const convertToCSV = (data) => {
-    if (!data || data.length === 0) return '';
-    
-    const headers = Object.keys(data[0]);
-    const csv = [
-      headers.join(','),
-      ...data.map(row => 
-        headers.map(header => {
-          const value = row[header];
-          return typeof value === 'string' && value.includes(',') 
-            ? `"${value}"` 
-            : value;
-        }).join(',')
-      )
-    ].join('\n');
-    
-    return csv;
-  };
-
-  const convertToXML = (data) => {
-    let xml = '<?xml version="1.0" encoding="UTF-8"?>\n<pontosTuristicos>\n';
-    
-    data.forEach(ponto => {
-      xml += '  <ponto>\n';
-      Object.entries(ponto).forEach(([key, value]) => {
-        xml += `    <${key}>${value}</${key}>\n`;
-      });
-      xml += '  </ponto>\n';
-    });
-    
-    xml += '</pontosTuristicos>';
-    return xml;
-  };
-
   const handleExport = async () => {
     setLoading(true);
     setMessage({ type: '', text: '' });
 
     try {
-      // TODO: Fazer requisição para para buscar dados reais
-      await new Promise(resolve => setTimeout(resolve, 500));
-      
-      let content;
+      let response;
       let mimeType;
       let fileExtension;
 
       switch (exportFormat) {
         case 'json':
-          content = convertToJSON(pontosMock);
+          response = await pontosAPI.exportJSON();
           mimeType = 'application/json';
           fileExtension = 'json';
           break;
-        case 'csv':
-          content = convertToCSV(pontosMock);
-          mimeType = 'text/csv';
-          fileExtension = 'csv';
-          break;
         case 'xml':
-          content = convertToXML(pontosMock);
+          response = await pontosAPI.exportXML();
           mimeType = 'application/xml';
           fileExtension = 'xml';
           break;
         default:
           throw new Error('Formato não suportado');
       }
+
+      const content = typeof response.data === 'string' 
+        ? response.data 
+        : JSON.stringify(response.data, null, 2);
 
       const blob = new Blob([content], { type: mimeType });
       const url = window.URL.createObjectURL(blob);
@@ -125,7 +59,7 @@ const AdminPage = () => {
 
       setMessage({ 
         type: 'success', 
-        text: `Dados exportados!` 
+        text: `Dados exportados com sucesso!` 
       });
     } catch (error) {
       setMessage({ 
@@ -137,64 +71,15 @@ const AdminPage = () => {
     }
   };
 
-  const parseJSON = (text) => {
-    return JSON.parse(text);
-  };
-
-  const parseCSV = (text) => {
-    const lines = text.split('\n').filter(line => line.trim());
-    if (lines.length < 2) throw new Error('CSV inválido');
-
-    const headers = lines[0].split(',').map(h => h.trim());
-    const data = [];
-
-    for (let i = 1; i < lines.length; i++) {
-      const values = lines[i].split(',').map(v => v.trim().replace(/^"|"$/g, ''));
-      const obj = {};
-      headers.forEach((header, index) => {
-        obj[header] = values[index];
-      });
-      data.push(obj);
-    }
-
-    return data;
-  };
-
-  const parseXML = (text) => {
-    const parser = new DOMParser();
-    const xmlDoc = parser.parseFromString(text, 'text/xml');
-    
-    if (xmlDoc.getElementsByTagName('parsererror').length > 0) {
-      throw new Error('XML inválido');
-    }
-
-    const pontos = xmlDoc.getElementsByTagName('ponto');
-    const data = [];
-
-    for (let i = 0; i < pontos.length; i++) {
-      const ponto = pontos[i];
-      const obj = {};
-      
-      for (let j = 0; j < ponto.children.length; j++) {
-        const child = ponto.children[j];
-        obj[child.tagName] = child.textContent;
-      }
-      
-      data.push(obj);
-    }
-
-    return data;
-  };
-
   const handleFileSelect = (e) => {
     const file = e.target.files[0];
     if (!file) return;
 
     const extension = file.name.split('.').pop().toLowerCase();
-    if (!['json', 'csv', 'xml'].includes(extension)) {
+    if (!['json', 'xml'].includes(extension)) {
       setMessage({ 
         type: 'error', 
-        text: 'Formato de arquivo não suportado.' 
+        text: 'Formato de arquivo não suportado. Use JSON ou XML.' 
       });
       return;
     }
@@ -214,37 +99,27 @@ const AdminPage = () => {
     setMessage({ type: '', text: '' });
 
     try {
-      const text = await importFile.text();
-      let data;
+      let response;
 
       switch (importFormat) {
         case 'json':
-          data = parseJSON(text);
-          break;
-        case 'csv':
-          data = parseCSV(text);
+          response = await pontosAPI.importJSON(importFile);
           break;
         case 'xml':
-          data = parseXML(text);
+          response = await pontosAPI.importXML(importFile);
           break;
         default:
           throw new Error('Formato não suportado');
       }
 
-      if (!Array.isArray(data) || data.length === 0) {
-        throw new Error('Arquivo não contém dados válidos');
-      }
-
-      // TODO: Enviar dados para API
-      console.log('Dados importados:', data);
-      
-      await new Promise(resolve => setTimeout(resolve, 1000));
-
       setMessage({ 
         type: 'success', 
-        text: `${data.length} ponto(s) turístico(s) importado(s) com sucesso!` 
+        text: 'Dados importados com sucesso!' 
       });
       setImportFile(null);
+      
+      const fileInput = document.getElementById('fileImport');
+      if (fileInput) fileInput.value = '';
     } catch (error) {
       setMessage({ 
         type: 'error', 
@@ -299,16 +174,6 @@ const AdminPage = () => {
                 JSON
               </button>
               <button
-                onClick={() => setExportFormat('csv')}
-                style={{
-                  ...styles.formatButton,
-                  ...(exportFormat === 'csv' ? styles.formatButtonActive : {})
-                }}
-              >
-                <FileType size={20} />
-                CSV
-              </button>
-              <button
                 onClick={() => setExportFormat('xml')}
                 style={{
                   ...styles.formatButton,
@@ -346,7 +211,7 @@ const AdminPage = () => {
             <div style={styles.fileInputContainer}>
               <input
                 type="file"
-                accept=".json,.csv,.xml"
+                accept=".json,.xml"
                 onChange={handleFileSelect}
                 style={styles.fileInput}
                 id="fileImport"
@@ -387,30 +252,9 @@ const styles = {
     padding: '2rem',
     minHeight: 'calc(100vh - 80px)'
   },
-  backButton: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '0.5rem',
-    padding: '0.5rem 1rem',
-    backgroundColor: 'transparent',
-    color: '#007BFF',
-    border: '1px solid #007BFF',
-    borderRadius: '6px',
-    fontSize: '0.95rem',
-    fontWeight: '500',
-    cursor: 'pointer',
-    marginBottom: '1.5rem',
-    transition: 'all 0.2s'
-  },
   header: {
     marginBottom: '2rem',
     textAlign: 'center'
-  },
-  title: {
-    fontSize: '2rem',
-    fontWeight: '600',
-    color: '#212529',
-    marginBottom: '0.5rem'
   },
   subtitle: {
     fontSize: '1rem',
@@ -462,12 +306,6 @@ const styles = {
     color: '#212529',
     margin: 0
   },
-  cardDescription: {
-    color: '#6c757d',
-    fontSize: '0.95rem',
-    marginBottom: '1.5rem',
-    lineHeight: '1.5'
-  },
   formGroup: {
     marginBottom: '1.5rem'
   },
@@ -480,7 +318,7 @@ const styles = {
   },
   formatButtons: {
     display: 'grid',
-    gridTemplateColumns: 'repeat(3, 1fr)',
+    gridTemplateColumns: 'repeat(2, 1fr)',
     gap: '0.5rem'
   },
   formatButton: {
@@ -532,13 +370,13 @@ const styles = {
   infoBox: {
     display: 'flex',
     gap: '0.75rem',
-    padding: '0.75rem',
+    padding: '1rem',
     backgroundColor: '#E7F3FF',
     border: '1px solid #B3D9FF',
-    borderRadius: '6px',
-    fontSize: '0.85rem',
+    borderRadius: '8px',
+    fontSize: '0.9rem',
     color: '#004085',
-    marginBottom: '1.5rem'
+    alignItems: 'flex-start'
   },
   primaryButton: {
     width: '100%',
@@ -575,27 +413,6 @@ const styles = {
   buttonDisabled: {
     opacity: 0.6,
     cursor: 'not-allowed'
-  },
-  helpSection: {
-    backgroundColor: '#F8F9FA',
-    border: '1px solid #E9ECEF',
-    borderRadius: '12px',
-    padding: '2rem'
-  },
-  helpTitle: {
-    fontSize: '1.25rem',
-    fontWeight: '600',
-    color: '#212529',
-    marginBottom: '1.5rem'
-  },
-  formatHelp: {
-    display: 'grid',
-    gap: '1.5rem'
-  },
-  formatHelpItem: {
-    display: 'flex',
-    gap: '1rem',
-    alignItems: 'flex-start'
   }
 };
 
