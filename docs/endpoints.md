@@ -27,7 +27,7 @@ Realiza a autenticação do usuário e retorna o token JWT.
 **Corpo da Requisição (JSON):**
 ```json
 {
-  "email": "usuario@email.com",
+  "email": "novo@email.com",
   "password": "senha123"
 }
 ```
@@ -48,9 +48,122 @@ Cria uma nova conta no sistema.
   "role": "USER"
 }
 ```
+
+Obs: role é opcional, padrão é "USER". Valores aceitos: "USER", "ADMIN".  
+
 ---
 
-## 2. Avaliações (`/avaliacoes`)
+## 2. Pontos Turísticos (`/pontos-turisticos`)
+
+### **Listar Pontos Turísticos**
+Retorna todos os pontos cadastrados.  
+
+* **Método:** `GET`
+* **URL:** `/pontos-turisticos`
+* **Acesso:** Autenticado  
+
+### **Buscar por ID**
+Retorna o ponto turístico correspondente ao ID informado.  
+
+* **Método:** `GET`
+* **URL:** `/pontos-turisticos/{id}`
+* **Acesso:** Autenticado  
+
+### **Criar Ponto Turístico**
+Cria um novo ponto turístico.  
+
+* **Método:** `POST`
+* **URL:** `/pontos-turisticos`
+* **Acesso:** Autenticado  
+
+**Corpo da Requisição (JSON):**
+```json
+{
+  "nome": "Cristo Redentor",
+  "descricao": "Estátua art déco de Jesus Cristo...",
+  "cidade": "Rio de Janeiro",
+  "estado": "RJ",
+  "pais": "Brasil",
+  "endereco": "Parque Nacional da Tijuca",
+  "latitude": -22.9519,
+  "longitude": -43.2105,
+  "comoChegarTexto": "Pode ir de trem do Corcovado ou van oficial."
+}
+```
+
+### **Atualizar Ponto Turístico**
+Atualiza as informações de um ponto turístico já cadastrado no sistema.  
+
+* **Método:** `PUT`
+* **URL:** `/pontos-turisticos/{id}`
+* **Acesso:** Autenticado  
+
+### **Deletar Ponto Turístico**
+Apaga as informações sobre um ponto turístico cadastrado no sistema.  
+
+* **Método:** `DELETE`
+* **URL:** `/pontos-turisticos/{id}`
+* **Acesso:** Autenticado  
+
+---
+
+## 3. Fotos e Upload (`/fotos`)
+
+### **Upload de Foto (Vínculo com Ponto)**
+Envia o arquivo da imagem para o disco e salva os metadados no banco PostgreSQL.
+
+* **Método:** `POST`
+* **URL:** `/fotos/upload/{pontoId}`
+* **Acesso:** Autenticado  
+* **Content-Typ*e:** `multipart/form-data`
+
+**Parâmetros (Form Data):**  
+* **arquivo:** (Arquivo de imagem selecionado)
+
+### **Listar Fotos**
+Lista todas as fotos.   
+
+* **Método:** `GET`
+* **URL:** `/fotos`
+* **Acesso:** Autenticado  
+
+### **Deletar Foto**
+Deleta uma foto específica a partir do ID especificado.
+
+* **Método:** `DELETE`
+* **URL:** `/fotos/{id}`
+* **Acesso:** Autenticado  
+
+---
+
+## 4. Hospedagens (`/hospedagens`)
+
+### **Criar Hospedagem**
+Vincula uma hospedagem a um Ponto Turístico existente.
+
+* **Método:** `POST`
+* **URL:** `/hospedagens`
+* **Acesso:** Autenticado  
+
+**Corpo da Requisição (JSON):**
+```json
+{
+  "nome": "Hotel Central",
+  "endereco": "Rua das Flores, 123",
+  "precoPorNoite": 250.00,
+  "pontoTuristicoId": 1
+}
+```
+### **Listar Hospedagens**
+Lista todas as hospedagens cadastradas no sistema.
+
+* **Método:** `GET`
+* **URL:** `/hospedagens`
+* **Acesso:** Autenticado 
+
+---
+
+## 5. Avaliações (`/avaliacoes`)
 
 ### **Enviar ou Editar Avaliação**
 Envia uma nota (1-5) e um comentário justificativo. Se o usuário já avaliou o ponto turístico anteriormente, a avaliação será atualizada.  
@@ -62,11 +175,13 @@ Envia uma nota (1-5) e um comentário justificativo. Se o usuário já avaliou o po
 **Corpo da Requisição (JSON):**
 ```json
 {
-  "pontoTuristicoId": "uuid-do-ponto-turistico",
+  "pontoTuristicoId": "1",
   "nota": 5,
   "comentario": "Excelente local para visitar com a família!"
 }
 ```
+
+Obs: O pontoTuristicoId deve ser o ID (número) do ponto turístico, enviado como string ou número.   
 
 ### **Obter Média de Avaliações**
 Retorna a média aritmética das notas de um ponto turístico.   
@@ -77,10 +192,10 @@ Retorna a média aritmética das notas de um ponto turístico.
 
 ---
 
-## 3. Comentários (`/comentarios`)
+## 6. Comentários e Perguntas (`/comentarios`)
 
 ### **Criar Comentário**
-Publica um novo comentário em um ponto turístico.   
+Publica um novo comentário/pergunta em um ponto turístico.   
 
 * **Método:** `POST`
 * **URL:** `/comentarios`
@@ -89,7 +204,7 @@ Publica um novo comentário em um ponto turístico.
 **Corpo da Requisição (JSON):**
 ```json
 {
-  "pontoTuristicoId": "uuid-do-ponto-turistico",
+  "pontoTuristicoId": "1",
   "texto": "Alguém sabe o horário de funcionamento?",
   "metadata": {
       "device": "mobile",
@@ -120,7 +235,7 @@ Adiciona uma resposta a um comentário existente.
 ```
 
 ### **Deletar Comentário**
-Remove um comentário pelo seu ID (MongoDB ID).  
+Remove um comentário pelo seu ID (MongoDB ObjectId).  
 
 * **Método:** `DELETE`
 * **URL:** `/comentarios/{id}`
@@ -129,3 +244,35 @@ Remove um comentário pelo seu ID (MongoDB ID).
 **Regras de Permissão:**
 * _USER_: Só pode deletar seus próprios comentários.
 * _ADMIN_: Pode deletar qualquer comentário.
+
+---
+
+## 7. Importação e Exportação (`/pontos-turisticos`)
+
+### **Exportar para JSON**
+
+* **Método:** `GET`
+* **URL:** `/pontos-turisticos/export/json`
+* **Acesso:** Autenticado   
+
+### **Exportar para XML**
+
+* **Método:** `GET`
+* **URL:** `/pontos-turisticos/export/xml`
+* **Acesso:** Autenticado 
+
+### **Importar de JSON**
+
+* **Método:** `POST`
+* **URL:** `/pontos-turisticos/import/json`
+* **Acesso:** Autenticado 
+* **Content-Type:** `multipart/form-data`
+* **Campo:**  arquivo` (arquivo .json)
+  
+### **Importar de XML**
+
+* **Método:** `POST`
+* **URL:** `/pontos-turisticos/import/xml`
+* **Acesso:** Autenticado 
+* **Content-Type:** `multipart/form-data`
+* **Campo:**  arquivo` (arquivo .xml)

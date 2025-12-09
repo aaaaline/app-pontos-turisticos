@@ -2,8 +2,11 @@ package com.inf.software_para_persistencia_de_dados.backend_app_pontos_turistico
 
 import com.inf.software_para_persistencia_de_dados.backend_app_pontos_turisticos.domain.avaliacao.Avaliacao;
 import com.inf.software_para_persistencia_de_dados.backend_app_pontos_turisticos.domain.user.User;
+import com.inf.software_para_persistencia_de_dados.backend_app_pontos_turisticos.entities.PontoTuristico;
 import com.inf.software_para_persistencia_de_dados.backend_app_pontos_turisticos.dto.AvaliacaoRequestDTO;
+import com.inf.software_para_persistencia_de_dados.backend_app_pontos_turisticos.exceptions.ResourceNotFoundException;
 import com.inf.software_para_persistencia_de_dados.backend_app_pontos_turisticos.repositories.AvaliacaoRepository;
+import com.inf.software_para_persistencia_de_dados.backend_app_pontos_turisticos.repositories.PontoTuristicoRepository; // Importar
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -19,12 +22,17 @@ public class AvaliacaoController {
     @Autowired
     private AvaliacaoRepository avaliacaoRepository;
 
+    @Autowired
+    private PontoTuristicoRepository pontoTuristicoRepository;
+
     @PostMapping
     public ResponseEntity<Void> avaliar(
             @RequestBody @Valid AvaliacaoRequestDTO data,
             @AuthenticationPrincipal User user
     ) {
-        Optional<Avaliacao> existente = avaliacaoRepository.findByPontoIdAndUserId(data.pontoTuristicoId(), user.getId());
+        Long pontoId = Long.parseLong(data.pontoTuristicoId());
+
+        Optional<Avaliacao> existente = avaliacaoRepository.findByPontoTuristicoIdAndUserId(pontoId, user.getId());
 
         if (existente.isPresent()) {
             Avaliacao avaliacao = existente.get();
@@ -32,8 +40,11 @@ public class AvaliacaoController {
             avaliacao.setComentario(data.comentario());
             avaliacaoRepository.save(avaliacao);
         } else {
+            PontoTuristico ponto = pontoTuristicoRepository.findById(pontoId)
+                    .orElseThrow(() -> new ResourceNotFoundException("Ponto Turístico não encontrado"));
+
             Avaliacao novaAvaliacao = new Avaliacao(
-                    data.pontoTuristicoId(),
+                    ponto,
                     user,
                     data.nota(),
                     data.comentario()
@@ -45,7 +56,7 @@ public class AvaliacaoController {
     }
 
     @GetMapping("/media/{pontoId}")
-    public ResponseEntity<Double> obterMedia(@PathVariable String pontoId) {
+    public ResponseEntity<Double> obterMedia(@PathVariable Long pontoId) {
         Double media = avaliacaoRepository.obterMediaPorPonto(pontoId);
         return ResponseEntity.ok(media != null ? media : 0.0);
     }
