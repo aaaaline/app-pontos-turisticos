@@ -1,30 +1,28 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { User, Trash2, Send } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
+import { comentariosAPI } from '../../services/api';
 
 const ComentariosList = ({ pontoId, onAuthClick }) => {
   const { isAuthenticated, isAdmin, user } = useAuth();
   
-  // Mock de comentários
-  const [comentarios, setComentarios] = useState([
-    {
-      id: 1,
-      usuarioId: 2,
-      usuarioNome: 'Maria Silva',
-      texto: 'Lugar maravilhoso para passear com a família! Muito verde e bem cuidado.',
-      data: '2024-11-20T10:30:00'
-    },
-    {
-      id: 2,
-      usuarioId: 3,
-      usuarioNome: 'João Santos',
-      texto: 'Ótimo para fazer exercícios. A pista de caminhada é excelente!',
-      data: '2024-11-19T08:15:00'
-    }
-  ]);
-
+  const [comentarios, setComentarios] = useState([]);
   const [novoComentario, setNovoComentario] = useState('');
   const [error, setError] = useState('');
+  const [isEnviando, setIsEnviando] = useState(false);
+
+  useEffect(() => {
+    loadComentarios();
+  }, [pontoId]);
+
+  const loadComentarios = async () => {
+    try {
+      const response = await comentariosAPI.getByPonto(pontoId);
+      setComentarios(response.data || []);
+    } catch (err) {
+      console.error('Erro ao carregar comentários:', err);
+    }
+  };
 
   const handleAddComentario = async (e) => {
     e.preventDefault();
@@ -45,20 +43,26 @@ const ComentariosList = ({ pontoId, onAuthClick }) => {
       return;
     }
 
-    try {
-      // TODO: Fazer requisição para API
-      const novoComentarioObj = {
-        id: Date.now(),
-        usuarioId: user.id,
-        usuarioNome: user.nome,
-        texto: novoComentario,
-        data: new Date().toISOString()
-      };
+    setIsEnviando(true);
 
-      setComentarios([novoComentarioObj, ...comentarios]);
+    try {
+      await comentariosAPI.create({
+        pontoTuristicoId: pontoId,
+        texto: novoComentario,
+        metadata: {
+          device: navigator.userAgent.includes('Mobile') ? 'mobile' : 'desktop',
+          language: 'pt'
+        }
+      });
+
       setNovoComentario('');
+      await loadComentarios();
     } catch (err) {
-      setError('Erro ao adicionar comentário');
+      console.error('Erro ao adicionar comentário:', err);
+      const message = err.response?.data?.message || 'Erro ao adicionar comentário';
+      setError(message);
+    } finally {
+      setIsEnviando(false);
     }
   };
 
@@ -66,10 +70,11 @@ const ComentariosList = ({ pontoId, onAuthClick }) => {
     if (!window.confirm('Tem certeza que deseja excluir este comentário?')) return;
 
     try {
-      // TODO: Fazer requisição para API
-      setComentarios(comentarios.filter(c => c.id !== comentarioId));
+      await comentariosAPI.delete(comentarioId);
+      await loadComentarios();
     } catch (err) {
       console.error('Erro ao excluir comentário:', err);
+      alert('Erro ao excluir comentário');
     }
   };
 
@@ -102,8 +107,8 @@ const ComentariosList = ({ pontoId, onAuthClick }) => {
           className="input"
           rows="3"
           maxLength="500"
-          placeholder={isAuthenticated ? "Compartilhe sua experiência..." : "Faça login para comentar"}
-          disabled={!isAuthenticated}
+          placeholder={isAuthenticated ? "Escreva um comentário" : "Faça login para comentar"}
+          disabled={!isAuthenticated || isEnviando}
           style={styles.textarea}
         />
         <div style={styles.formFooter}>
@@ -119,9 +124,12 @@ const ComentariosList = ({ pontoId, onAuthClick }) => {
               Fazer Login
             </button>
           ) : (
-            <button type="submit" className="btn btn-accent">
+            <button 
+              type="submit" 
+              className="btn btn-accent"
+              disabled={isEnviando}
+            >
               <Send size={18} />
-              Publicar
             </button>
           )}
         </div>
@@ -142,8 +150,12 @@ const ComentariosList = ({ pontoId, onAuthClick }) => {
                     <User size={20} />
                   </div>
                   <div>
-                    <strong style={styles.userName}>{comentario.usuarioNome}</strong>
-                    <span style={styles.date}>{formatarData(comentario.data)}</span>
+                    <strong style={styles.userName}>
+                      {comentario.usuarioNome || 'Usuário'}
+                    </strong>
+                    <span style={styles.date}>
+                      {formatarData(comentario.createdAt)}
+                    </span>
                   </div>
                 </div>
                 {podeExcluir(comentario.usuarioId) && (

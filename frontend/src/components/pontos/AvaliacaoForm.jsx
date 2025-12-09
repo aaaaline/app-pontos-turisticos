@@ -1,11 +1,13 @@
 import { useState } from 'react';
 import { Star, X } from 'lucide-react';
+import { avaliacoesAPI } from '../../services/api';
 
 const AvaliacaoForm = ({ pontoId, avaliacaoExistente, onClose, onSuccess }) => {
   const [nota, setNota] = useState(avaliacaoExistente?.nota || 0);
   const [notaHover, setNotaHover] = useState(0);
   const [comentario, setComentario] = useState(avaliacaoExistente?.comentario || '');
   const [error, setError] = useState('');
+  const [isEnviando, setIsEnviando] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -21,17 +23,33 @@ const AvaliacaoForm = ({ pontoId, avaliacaoExistente, onClose, onSuccess }) => {
       return;
     }
 
+    setIsEnviando(true);
+
     try {
-      // TODO: Fazer requisição para API
-      
-      console.log('Avaliação enviada:', { pontoId, nota, comentario });
+      const avaliacaoData = {
+        pontoTuristicoId: pontoId,
+        nota,
+        comentario
+      };
+
+      if (avaliacaoExistente) {
+        await avaliacoesAPI.update(avaliacaoExistente.id, avaliacaoData);
+      } else {
+        await avaliacoesAPI.create(avaliacaoData);
+      }
       
       if (onSuccess) onSuccess();
       if (onClose) onClose();
       
-      alert('Avaliação enviada com sucesso!');
+      alert(avaliacaoExistente ? 'Avaliação atualizada!' : 'Avaliação enviada com sucesso!');
     } catch (err) {
-      setError('Erro ao enviar avaliação. Tente novamente.');
+      console.error('Erro ao enviar avaliação:', err);
+      const message = err.response?.data?.message || 
+                     err.response?.data?.error || 
+                     'Erro ao enviar avaliação. Tente novamente.';
+      setError(message);
+    } finally {
+      setIsEnviando(false);
     }
   };
 
@@ -60,6 +78,7 @@ const AvaliacaoForm = ({ pontoId, avaliacaoExistente, onClose, onSuccess }) => {
                 onMouseEnter={() => setNotaHover(star)}
                 onMouseLeave={() => setNotaHover(0)}
                 style={styles.starButton}
+                disabled={isEnviando}
               >
                 <Star
                   size={40}
@@ -94,8 +113,9 @@ const AvaliacaoForm = ({ pontoId, avaliacaoExistente, onClose, onSuccess }) => {
             className="input"
             rows="5"
             maxLength="500"
-            placeholder=""
+            placeholder="Compartilhe sua experiência sobre este local..."
             style={styles.textarea}
+            disabled={isEnviando}
           />
         </div>
 
@@ -111,12 +131,17 @@ const AvaliacaoForm = ({ pontoId, avaliacaoExistente, onClose, onSuccess }) => {
               type="button"
               onClick={onClose}
               className="btn btn-outline"
+              disabled={isEnviando}
             >
               Cancelar
             </button>
           )}
-          <button type="submit" className="btn btn-accent">
-            {avaliacaoExistente ? 'Atualizar Avaliação' : 'Enviar Avaliação'}
+          <button 
+            type="submit" 
+            className="btn btn-accent"
+            disabled={isEnviando}
+          >
+            {isEnviando ? 'Enviando...' : (avaliacaoExistente ? 'Atualizar Avaliação' : 'Enviar Avaliação')}
           </button>
         </div>
       </form>
