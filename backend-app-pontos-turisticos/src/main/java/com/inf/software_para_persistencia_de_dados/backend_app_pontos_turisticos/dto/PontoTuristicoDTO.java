@@ -12,6 +12,7 @@ public class PontoTuristicoDTO {
     private Double latitude;
     private Double longitude;
     private String comoChegarTexto;
+    private String tipo;
 
     public PontoTuristicoDTO() {}
 
@@ -45,4 +46,7 @@ public class PontoTuristicoDTO {
 
     public String getComoChegarTexto() { return comoChegarTexto; }
     public void setComoChegarTexto(String comoChegarTexto) { this.comoChegarTexto = comoChegarTexto; }
+
+    public String getTipo() { return tipo; }
+    public void setTipo(String tipo) { this.tipo = tipo; }
 }
