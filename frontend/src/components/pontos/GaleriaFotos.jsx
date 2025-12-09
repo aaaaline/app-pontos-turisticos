@@ -26,16 +26,7 @@ const GaleriaFotos = ({ pontoId, fotos, onFotosUpdated, onAuthClick }) => {
       <>
         <div style={styles.emptyState}>
           <p>Nenhuma foto salva.</p>
-          {isAuthenticated && (
-            <button 
-              onClick={handleUpload}
-              className="btn btn-accent"
-              style={{ marginTop: '1rem' }}
-            >
-              <Upload size={18} />
-              Adicionar
-            </button>
-          )}
+          
         </div>
 
         {showUploadModal && (

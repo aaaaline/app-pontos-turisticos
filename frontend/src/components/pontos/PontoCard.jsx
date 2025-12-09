@@ -8,19 +8,13 @@ const PontoCard = ({ ponto }) => {
   return (
     <Link to={`/ponto/${ponto.id}`} style={styles.cardLink}>
       <div className="card" style={styles.card}>
-        <div style={styles.imageContainer}>
-          <img
-            src={ponto.imagemPrincipal}
-            alt={ponto.nome}
-            style={styles.image}
-          />
-          <button style={styles.favoriteBtn}>
-            <Heart size={20} />
-          </button>
-        </div>
-
         <div style={styles.content}>
-          <h3 style={styles.title}>{ponto.nome}</h3>
+          <div style={styles.header}>
+            <h3 style={styles.title}>{ponto.nome}</h3>
+            <button style={styles.favoriteBtn} onClick={(e) => e.preventDefault()}>
+              <Heart size={20} />
+            </button>
+          </div>
 
           <div style={styles.location}>
             <MapPin size={16} color="#6c757d" />
@@ -30,8 +24,8 @@ const PontoCard = ({ ponto }) => {
           </div>
 
           <p style={styles.description}>
-            {ponto.descricao?.substring(0, 100)}
-            {ponto.descricao?.length > 100 ? "..." : ""}
+            {ponto.descricao?.substring(0, 120)}
+            {ponto.descricao?.length > 120 ? "..." : ""}
           </p>
 
           {totalAvaliacoes > 0 && (
@@ -65,30 +59,34 @@ const styles = {
   },
   card: {
     overflow: "hidden",
-    padding: 0,
     height: "100%",
     display: "flex",
     flexDirection: "column",
+    transition: "transform 0.2s ease, box-shadow 0.2s ease",
   },
-  imageContainer: {
-    position: "relative",
-    width: "100%",
-    height: "200px",
-    overflow: "hidden",
-    backgroundColor: "var(--bg-secondary)",
+  content: {
+    padding: "1.5rem",
+    display: "flex",
+    flexDirection: "column",
+    gap: "0.75rem",
+    flex: 1,
   },
-  image: {
-    width: "100%",
-    height: "100%",
-    objectFit: "cover",
-    transition: "transform 0.3s ease",
+  header: {
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "flex-start",
+    gap: "0.5rem",
+  },
+  title: {
+    fontSize: "1.25rem",
+    fontWeight: "600",
+    color: "var(--text-primary)",
+    margin: 0,
+    flex: 1,
   },
   favoriteBtn: {
-    position: "absolute",
-    top: "0.75rem",
-    right: "0.75rem",
-    background: "white",
-    border: "none",
+    background: "none",
+    border: "1px solid var(--border-color)",
     borderRadius: "50%",
     width: "36px",
     height: "36px",
@@ -96,21 +94,8 @@ const styles = {
     alignItems: "center",
     justifyContent: "center",
     cursor: "pointer",
-    boxShadow: "var(--shadow-md)",
     transition: "all 0.3s ease",
-  },
-  content: {
-    padding: "1.25rem",
-    display: "flex",
-    flexDirection: "column",
-    gap: "0.75rem",
-    flex: 1,
-  },
-  title: {
-    fontSize: "1.25rem",
-    fontWeight: "600",
-    color: "var(--text-primary)",
-    margin: 0,
+    flexShrink: 0,
   },
   location: {
     display: "flex",
@@ -130,6 +115,8 @@ const styles = {
     alignItems: "center",
     gap: "0.5rem",
     marginTop: "auto",
+    paddingTop: "0.5rem",
+    borderTop: "1px solid var(--border-color)",
   },
   stars: {
     display: "flex",

@@ -34,10 +34,26 @@ public class PontoTuristicoController {
     }
 
     @GetMapping
-    public ResponseEntity<List<PontoTuristico>> listar() {
-        return ResponseEntity.ok(service.findAll());
-    }
+    public ResponseEntity<List<PontoTuristicoDTO>> listar() {
+        List<PontoTuristicoDTO> dtos = service.findAll().stream()
+                .map(p -> {
+                    PontoTuristicoDTO dto = new PontoTuristicoDTO();
+                    dto.setId(p.getId());
+                    dto.setNome(p.getNome());
+                    dto.setDescricao(p.getDescricao());
+                    dto.setCidade(p.getCidade());
+                    dto.setEstado(p.getEstado());
+                    dto.setPais(p.getPais());
+                    dto.setEndereco(p.getEndereco());
+                    dto.setLatitude(p.getLatitude());
+                    dto.setLongitude(p.getLongitude());
+                    dto.setComoChegarTexto(p.getComoChegarTexto());
+                    return dto;
+                })
+                .toList();
 
+        return ResponseEntity.ok(dtos);
+    }
     @GetMapping("/{id}")
     public ResponseEntity<PontoTuristico> buscarPorId(@PathVariable Long id) {
         return ResponseEntity.ok(service.findById(id));
