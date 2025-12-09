@@ -34,6 +34,9 @@ public class PontoTuristico {
     private String pais;
     private String endereco;
 
+    @Column(length = 50)
+    private String tipo;
+
     private Double latitude;
     private Double longitude;
 
@@ -102,4 +105,7 @@ public class PontoTuristico {
 
     public LocalDateTime getUpdatedAt() { return updatedAt; }
     public void setUpdatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; }
+
+    public String getTipo() { return tipo; }
+    public void setTipo(String tipo) { this.tipo = tipo; }
 }
