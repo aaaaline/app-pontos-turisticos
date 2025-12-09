@@ -48,12 +48,18 @@ public class FotoController {
         return ResponseEntity.noContent().build();
     }
 
-    // ----------- UPLOAD DE FOTO (funciona com MultipartFile) -----------
+    // ----------- UPLOAD DE FOTO REAL -----------
     @PostMapping("/upload/{pontoId}")
-    public ResponseEntity<String> uploadFoto(
+    public ResponseEntity<?> uploadFoto(
             @PathVariable Long pontoId,
             @RequestParam("arquivo") MultipartFile arquivo
     ) {
-        return ResponseEntity.ok("Upload implementado — falta salvar arquivo de verdade.");
+        try {
+            // Chama o método que salva no disco e cria o registro no banco
+            Foto fotoSalva = service.salvarFoto(arquivo, pontoId);
+            return ResponseEntity.ok(fotoSalva);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body("Erro ao realizar upload: " + e.getMessage());
+        }
     }
 }
