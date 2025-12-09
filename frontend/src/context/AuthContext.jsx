@@ -1,66 +1,76 @@
 import { createContext, useContext, useState, useEffect } from "react";
+import { authAPI } from "../services/api";
 
 const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(() => {
-    const savedUser = localStorage.getItem("turismap_user");
+    const savedUser = localStorage.getItem("app_user");
     return savedUser ? JSON.parse(savedUser) : null;
   });
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     if (user) {
-      localStorage.setItem("turismap_user", JSON.stringify(user));
+      localStorage.setItem("app_user", JSON.stringify(user));
     } else {
-      localStorage.removeItem("turismap_user");
+      localStorage.removeItem("app_user");
     }
   }, [user]);
 
   const login = async (credentials) => {
     try {
-      // Fazer requisição para o backend depois
-
-      // Mock de usuário
-      const mockUser = {
-        id: 1,
-        nome: credentials.email.split("@")[0],
+      setIsLoading(true);
+      const response = await authAPI.login(credentials);
+      
+      const userData = {
+        id: response.data.id,
+        nome: response.data.name,
         email: credentials.email,
-        role: "USER",
+        token: response.data.token,
+        role: response.data.role || "USER",
       };
 
-      setUser(mockUser);
-      localStorage.setItem("turismap_user", JSON.stringify(mockUser));
+      setUser(userData);
+      localStorage.setItem("app_user", JSON.stringify(userData));
       return { success: true };
     } catch (error) {
-      console.error(error);
-      return { success: false, error: "Falha ao fazer login" };
+      console.error('Erro no login:', error);
+      const message = error.response?.data?.message || 
+                     error.response?.data?.error || 
+                     "Falha ao fazer login.";
+      return { success: false, error: message };
+    } finally {
+      setIsLoading(false);
     }
   };
 
   const register = async (userData) => {
     try {
-      // Fazer requisição para o backend
-
-      // Mock de criarção de conta
-      const mockUser = {
-        id: Date.now(),
-        nome: userData.nome,
+      setIsLoading(true);
+      await authAPI.register(userData);
+      
+      // fazer login automaticamente
+      const loginResult = await login({
         email: userData.email,
-        role: "USER",
-      };
-
-      setUser(mockUser);
-      localStorage.setItem("turismap_user", JSON.stringify(mockUser));
-      return { success: true };
+        senha: userData.senha
+      });
+      
+      return loginResult;
     } catch (error) {
-      console.error(error);
-      return { success: false, error: "Falha ao criar conta" };
+      console.error('Erro no registro:', error);
+      const message = error.response?.data?.message || 
+                     error.response?.data?.error || 
+                     "Falha ao criar conta.";
+      return { success: false, error: message };
+    } finally {
+      setIsLoading(false);
     }
   };
 
   const logout = () => {
     setUser(null);
+    localStorage.removeItem("app_user");
   };
 
   const value = {

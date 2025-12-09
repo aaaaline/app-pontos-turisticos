@@ -51,10 +51,6 @@ const AuthModal = ({ isOpen, onClose }) => {
         setError("As senhas não são iguais");
         return;
       }
-      if (formData.senha.length < 6) {
-        setError("A senha deve ter no mínimo 6 caracteres");
-        return;
-      }
     }
 
     const result = isLogin
