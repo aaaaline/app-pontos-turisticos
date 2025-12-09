@@ -16,7 +16,8 @@ public class FotoService {
     private final FotoRepository fotoRepository;
     private final PontoTuristicoRepository pontoTuristicoRepository;
 
-    public FotoService(FotoRepository fotoRepository, PontoTuristicoRepository pontoTuristicoRepository) {
+    public FotoService(FotoRepository fotoRepository,
+                       PontoTuristicoRepository pontoTuristicoRepository) {
         this.fotoRepository = fotoRepository;
         this.pontoTuristicoRepository = pontoTuristicoRepository;
     }
@@ -26,6 +27,7 @@ public class FotoService {
         foto.setUrl(dto.getUrl());
         foto.setDescricao(dto.getDescricao());
 
+        // associação com ponto turístico
         if (dto.getPontoTuristicoId() != null) {
             PontoTuristico ponto = pontoTuristicoRepository.findById(dto.getPontoTuristicoId())
                     .orElseThrow(() -> new ResourceNotFoundException("Ponto turístico não encontrado"));
@@ -48,6 +50,14 @@ public class FotoService {
         Foto foto = findById(id);
         foto.setUrl(dto.getUrl());
         foto.setDescricao(dto.getDescricao());
+
+        // atualizar associação
+        if (dto.getPontoTuristicoId() != null) {
+            PontoTuristico ponto = pontoTuristicoRepository.findById(dto.getPontoTuristicoId())
+                    .orElseThrow(() -> new ResourceNotFoundException("Ponto turístico não encontrado"));
+            foto.setPontoTuristico(ponto);
+        }
+
         return fotoRepository.save(foto);
     }
 

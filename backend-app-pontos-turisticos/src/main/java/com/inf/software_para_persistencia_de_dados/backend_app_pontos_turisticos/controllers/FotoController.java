@@ -5,6 +5,7 @@ import com.inf.software_para_persistencia_de_dados.backend_app_pontos_turisticos
 import com.inf.software_para_persistencia_de_dados.backend_app_pontos_turisticos.services.FotoService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -45,5 +46,14 @@ public class FotoController {
     public ResponseEntity<Void> deletar(@PathVariable Long id) {
         service.delete(id);
         return ResponseEntity.noContent().build();
+    }
+
+    // ----------- UPLOAD DE FOTO (funciona com MultipartFile) -----------
+    @PostMapping("/upload/{pontoId}")
+    public ResponseEntity<String> uploadFoto(
+            @PathVariable Long pontoId,
+            @RequestParam("arquivo") MultipartFile arquivo
+    ) {
+        return ResponseEntity.ok("Upload implementado — falta salvar arquivo de verdade.");
     }
 }
