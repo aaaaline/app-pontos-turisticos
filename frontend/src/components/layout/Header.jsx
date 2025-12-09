@@ -1,9 +1,9 @@
 import { Link } from "react-router-dom";
-import { MapPin, User, LogOut } from "lucide-react";
+import { MapPin, User, LogOut, Settings } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 
 const Header = ({ onAuthClick }) => {
-  const { user, isAuthenticated, logout } = useAuth();
+  const { user, isAuthenticated, isAdmin, logout } = useAuth();
 
   return (
     <header style={styles.header}>
@@ -17,6 +17,13 @@ const Header = ({ onAuthClick }) => {
           <Link to="/" style={styles.navLink}>
             Explorar
           </Link>
+
+          {isAdmin && (
+            <Link to="/admin" style={styles.navLink}>
+              <Settings size={18} />
+              Admin
+            </Link>
+          )}
 
           {isAuthenticated ? (
             <div style={styles.userMenu}>
@@ -83,6 +90,9 @@ const styles = {
     color: "var(--text-primary)",
     textDecoration: "none",
     transition: "color 0.3s ease",
+    display: "flex",
+    alignItems: "center",
+    gap: "0.5rem",
   },
   userMenu: {
     display: "flex",

@@ -5,6 +5,7 @@ import Header from "./components/layout/Header";
 import AuthModal from "./components/layout/AuthModal";
 import Home from "./pages/Home";
 import PontoDetalhesPage from "./pages/PontoDetalhesPage";
+import AdminPage from "./pages/AdminPage";
 import "./styles/index.css";
 
 function App() {
@@ -26,6 +27,10 @@ function App() {
                 path="/ponto/:id"
                 element={<PontoDetalhesPage onAuthClick={() => setShowAuthModal(true)}/>
                 }
+              />
+              <Route
+                path="/admin"
+                element={<AdminPage />}
               />
             </Routes>
           </main>
