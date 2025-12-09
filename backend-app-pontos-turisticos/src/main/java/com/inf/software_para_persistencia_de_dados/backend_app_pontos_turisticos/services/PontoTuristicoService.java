@@ -5,6 +5,8 @@ import com.inf.software_para_persistencia_de_dados.backend_app_pontos_turisticos
 import com.inf.software_para_persistencia_de_dados.backend_app_pontos_turisticos.repositories.PontoTuristicoRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -18,16 +20,42 @@ public class PontoTuristicoService {
         this.repo = repo;
     }
 
+    @Cacheable(value = "pontosTuristicos", key = "#id")
+    public PontoTuristico findById(Long id) {
+        return repo.findById(id)
+                .orElseThrow(() -> new RuntimeException("Ponto turístico não encontrado"));
+    }
+
+    @CacheEvict(value = "pontosTuristicos", key = "#id")
+    public PontoTuristico update(Long id, PontoTuristicoDTO dto) {
+        PontoTuristico existing = findById(id);
+        updateEntityFromDto(existing, dto);
+        return repo.save(existing);
+    }
+
+    @CacheEvict(value = "pontosTuristicos", key = "#id")
+    public void delete(Long id) {
+        PontoTuristico entity = findById(id);
+        repo.delete(entity);
+    }
+
     public PontoTuristico create(PontoTuristicoDTO dto) {
         PontoTuristico entity = new PontoTuristico();
         updateEntityFromDto(entity, dto);
         return repo.save(entity);
     }
 
-    public PontoTuristico update(Long id, PontoTuristicoDTO dto) {
-        PontoTuristico existing = findById(id);
-        updateEntityFromDto(existing, dto);
-        return repo.save(existing);
+    public Page<PontoTuristico> findAll(String nome, String cidade, String estado, String tipo, Pageable pageable) {
+        String nomePattern = nome == null ? null : "%" + nome.toLowerCase() + "%";
+        String cidadePattern = cidade == null ? null : "%" + cidade.toLowerCase() + "%";
+        String estadoPattern = estado == null ? null : "%" + estado.toLowerCase() + "%";
+        String tipoPattern = tipo == null ? null : "%" + tipo.toLowerCase() + "%";
+
+        return repo.buscarComFiltros(nomePattern, cidadePattern, estadoPattern, tipoPattern, pageable);
+    }
+
+    public List<PontoTuristico> findAllList() {
+        return repo.findAll();
     }
 
     private void updateEntityFromDto(PontoTuristico entity, PontoTuristicoDTO dto) {
@@ -41,29 +69,5 @@ public class PontoTuristicoService {
         entity.setLongitude(dto.getLongitude());
         entity.setComoChegarTexto(dto.getComoChegarTexto());
         entity.setTipo(dto.getTipo());
-    }
-
-    public Page<PontoTuristico> findAll(String nome, String cidade, String estado, String tipo, Pageable pageable) {
-
-        String nomePattern = nome == null ? null : "%" + nome.toLowerCase() + "%";
-        String cidadePattern = cidade == null ? null : "%" + cidade.toLowerCase() + "%";
-        String estadoPattern = estado == null ? null : "%" + estado.toLowerCase() + "%";
-        String tipoPattern = tipo == null ? null : "%" + tipo.toLowerCase() + "%";
-
-        return repo.buscarComFiltros(nomePattern, cidadePattern, estadoPattern, tipoPattern, pageable);
-    }
-
-    public PontoTuristico findById(Long id) {
-        return repo.findById(id)
-                .orElseThrow(() -> new RuntimeException("Ponto turístico não encontrado"));
-    }
-
-    public void delete(Long id) {
-        PontoTuristico entity = findById(id);
-        repo.delete(entity);
-    }
-
-    public List<PontoTuristico> findAllList() {
-        return repo.findAll();
     }
 }

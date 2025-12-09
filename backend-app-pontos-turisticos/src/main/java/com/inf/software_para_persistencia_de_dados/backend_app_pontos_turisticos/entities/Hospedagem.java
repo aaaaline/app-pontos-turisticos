@@ -1,5 +1,6 @@
 package com.inf.software_para_persistencia_de_dados.backend_app_pontos_turisticos.entities;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 import java.math.BigDecimal;
@@ -25,5 +26,6 @@ public class Hospedagem {
 
     @ManyToOne
     @JoinColumn(name = "ponto_turistico_id")
+    @JsonIgnore
     private PontoTuristico pontoTuristico;
 }

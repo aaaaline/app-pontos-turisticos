@@ -2,8 +2,10 @@ package com.inf.software_para_persistencia_de_dados.backend_app_pontos_turistico
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.cache.annotation.EnableCaching;
 
 @SpringBootApplication
+@EnableCaching
 public class BackendAppPontosTuristicosApplication {
 
     public static void main(String[] args) {
