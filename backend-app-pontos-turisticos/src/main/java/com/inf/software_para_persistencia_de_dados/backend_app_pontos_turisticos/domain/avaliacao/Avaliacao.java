@@ -1,6 +1,7 @@
 package com.inf.software_para_persistencia_de_dados.backend_app_pontos_turisticos.domain.avaliacao;
 
 import com.inf.software_para_persistencia_de_dados.backend_app_pontos_turisticos.domain.user.User;
+import com.inf.software_para_persistencia_de_dados.backend_app_pontos_turisticos.entities.PontoTuristico;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -23,8 +24,9 @@ public class Avaliacao {
     @GeneratedValue(strategy = GenerationType.UUID)
     private String id;
 
-    @Column(name = "ponto_id", nullable = false)
-    private String pontoId;
+    @ManyToOne
+    @JoinColumn(name = "ponto_id")
+    private PontoTuristico pontoTuristico;
 
     @ManyToOne
     @JoinColumn(name = "usuario_id", nullable = false)
@@ -40,8 +42,8 @@ public class Avaliacao {
     @Column(name = "created_at")
     private LocalDateTime createdAt;
 
-    public Avaliacao(String pontoId, User user, Integer nota, String comentario) {
-        this.pontoId = pontoId;
+    public Avaliacao(PontoTuristico pontoTuristico, User user, Integer nota, String comentario) {
+        this.pontoTuristico = pontoTuristico;
         this.user = user;
         this.nota = nota;
         this.comentario = comentario;
