@@ -1,10 +1,10 @@
 package com.inf.software_para_persistencia_de_dados.backend_app_pontos_turisticos.entities;
 
-import jakarta.persistence.*;
 import lombok.*;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.mapping.Document;
 
-@Entity
-@Table(name = "foto")
+@Document(collection = "fotos")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -12,15 +12,12 @@ import lombok.*;
 public class Foto {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private String id;
 
     private String url;
     private String nomeArquivo;
     private String descricao;
     private Long tamanhoBytes;
 
-    @ManyToOne
-    @JoinColumn(name = "ponto_turistico_id")
-    private PontoTuristico pontoTuristico;
+    private Long pontoTuristicoId;
 }

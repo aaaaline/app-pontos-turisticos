@@ -5,6 +5,7 @@ import com.inf.software_para_persistencia_de_dados.backend_app_pontos_turisticos
 import com.inf.software_para_persistencia_de_dados.backend_app_pontos_turisticos.domain.user.User;
 import com.inf.software_para_persistencia_de_dados.backend_app_pontos_turisticos.domain.user.UserRole;
 import com.inf.software_para_persistencia_de_dados.backend_app_pontos_turisticos.dto.ComentarioRequestDTO;
+import com.inf.software_para_persistencia_de_dados.backend_app_pontos_turisticos.dto.ComentarioUpdateDTO;
 import com.inf.software_para_persistencia_de_dados.backend_app_pontos_turisticos.dto.RespostaRequestDTO;
 import com.inf.software_para_persistencia_de_dados.backend_app_pontos_turisticos.repositories.ComentarioRepository;
 import jakarta.validation.Valid;
@@ -44,6 +45,30 @@ public class ComentarioController {
     public ResponseEntity<List<Comentario>> listarComentarios(@PathVariable String pontoId) {
         List<Comentario> comentarios = comentarioRepository.findByPontoIdOrderByCreatedAtDesc(pontoId);
         return ResponseEntity.ok(comentarios);
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<Void> atualizarComentario(
+            @PathVariable String id,
+            @RequestBody @Valid ComentarioUpdateDTO data,
+            @AuthenticationPrincipal User user
+    ) {
+        Optional<Comentario> comentarioOpt = comentarioRepository.findById(id);
+
+        if (comentarioOpt.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+
+        Comentario comentario = comentarioOpt.get();
+
+        if (!comentario.getUsuarioId().equals(user.getId())) {
+            return ResponseEntity.status(403).build();
+        }
+
+        comentario.setTexto(data.texto());
+        comentarioRepository.save(comentario);
+
+        return ResponseEntity.ok().build();
     }
 
     @DeleteMapping("/{id}")
