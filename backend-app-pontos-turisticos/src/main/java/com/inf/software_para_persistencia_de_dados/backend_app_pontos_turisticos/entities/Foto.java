@@ -3,9 +3,10 @@ package com.inf.software_para_persistencia_de_dados.backend_app_pontos_turistico
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.mapping.Document;
 
-@Entity
-@Table(name = "foto")
+@Document(collection = "fotos")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -13,8 +14,7 @@ import lombok.*;
 public class Foto {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private String id;
 
     private String url;
     private String nomeArquivo;

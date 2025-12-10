@@ -6,7 +6,7 @@ import com.inf.software_para_persistencia_de_dados.backend_app_pontos_turisticos
 import com.inf.software_para_persistencia_de_dados.backend_app_pontos_turisticos.dto.AvaliacaoRequestDTO;
 import com.inf.software_para_persistencia_de_dados.backend_app_pontos_turisticos.exceptions.ResourceNotFoundException;
 import com.inf.software_para_persistencia_de_dados.backend_app_pontos_turisticos.repositories.AvaliacaoRepository;
-import com.inf.software_para_persistencia_de_dados.backend_app_pontos_turisticos.repositories.PontoTuristicoRepository; // Importar
+import com.inf.software_para_persistencia_de_dados.backend_app_pontos_turisticos.repositories.PontoTuristicoRepository;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -52,7 +52,21 @@ public class AvaliacaoController {
             avaliacaoRepository.save(novaAvaliacao);
         }
 
+        atualizarMediaPonto(pontoId);
+
         return ResponseEntity.ok().build();
+    }
+
+    private void atualizarMediaPonto(Long pontoId) {
+        Double novaMedia = avaliacaoRepository.obterMediaPorPonto(pontoId);
+
+        if (novaMedia == null) novaMedia = 0.0;
+
+        PontoTuristico ponto = pontoTuristicoRepository.findById(pontoId)
+                .orElseThrow(() -> new ResourceNotFoundException("Ponto não encontrado para atualização de média"));
+
+        ponto.setMediaAvaliacao(novaMedia);
+        pontoTuristicoRepository.save(ponto);
     }
 
     @GetMapping("/media/{pontoId}")

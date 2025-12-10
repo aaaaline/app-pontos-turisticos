@@ -5,26 +5,26 @@
 
 ---
 
-## AutenticaÁ„o e SeguranÁa
+## Autentica√ß√£o e Seguran√ßa
 
-A maioria dos endpoints de escrita (POST, DELETE) exige autenticaÁ„o via Token JWT.  
+A maioria dos endpoints de escrita (POST, DELETE) exige autentica√ß√£o via Token JWT.  
 
-* **Header ObrigatÛrio (para rotas protegidas):**
+* **Header Obrigat√≥rio (para rotas protegidas):**
     * **Key:** `Authorization`
     * **Value:** `Bearer <SEU_TOKEN_JWT>`
 
 ---
 
-## 1. AutenticaÁ„o (`/auth`)
+## 1. Autentica√ß√£o (`/auth`)
 
 ### **Login**
-Realiza a autenticaÁ„o do usu·rio e retorna o token JWT.
+Realiza a autentica√ß√£o do usu√°rio e retorna o token JWT.
 
-* **MÈtodo:** `POST`
+* **M√©todo:** `POST`
 * **URL:** `/auth/login`
-* **Acesso:** P˙blico
+* **Acesso:** P√∫blico
 
-**Corpo da RequisiÁ„o (JSON):**
+**Corpo da Requisi√ß√£o (JSON):**
 ```json
 {
   "email": "novo@email.com",
@@ -32,14 +32,14 @@ Realiza a autenticaÁ„o do usu·rio e retorna o token JWT.
 }
 ```
 
-### **Registrar Usu·rio**
+### **Registrar Usu√°rio**
 Cria uma nova conta no sistema.  
 
-* **MÈtodo:** `POST`
+* **M√©todo:** `POST`
 * **URL:** `/auth/register`
-* **Acesso:** P˙blico
+* **Acesso:** P√∫blico
 
-**Corpo da RequisiÁ„o (JSON):**
+**Corpo da Requisi√ß√£o (JSON):**
 ```json
 {
   "name": "Nome Completo",
@@ -49,104 +49,149 @@ Cria uma nova conta no sistema.
 }
 ```
 
-Obs: role È opcional, padr„o È "USER". Valores aceitos: "USER", "ADMIN".  
+Obs: role √© opcional, padr√£o √© "USER". Valores aceitos: "USER", "ADMIN".  
 
 ---
 
-## 2. Pontos TurÌsticos (`/pontos-turisticos`)
+## 2. Pontos Tur√≠sticos (`/pontos-turisticos`)
 
-### **Listar Pontos TurÌsticos**
-Retorna todos os pontos cadastrados.  
+### **Listar Pontos Tur√≠sticos (Com Filtros)**
+Retorna os pontos cadastrados com pagina√ß√£o e filtros opcionais.   
 
-* **MÈtodo:** `GET`
+* **M√©todo:** `GET`
 * **URL:** `/pontos-turisticos`
-* **Acesso:** Autenticado  
+* Par√¢metros de Consulta (Query Params - Opcionais):
+     - `nome`: Filtra por parte do nome.
+     - `cidade`: Filtra por cidade.
+     - `estado`: Filtra por estado.
+     - `tipo`: Filtra por tipo de atra√ß√£o.
+     - `mediaMinima`: Retorna apenas pontos com m√©dia de avalia√ß√£o maior ou igual ao valor.
+     - `page`: N√∫mero da p√°gina (padr√£o 0).
+     - `size`: Itens por p√°gina (padr√£o 10).
+     - `sort`: Ordena√ß√£o (ex: nome,asc).
+* **Acesso:** P√∫blico 
 
 ### **Buscar por ID**
-Retorna o ponto turÌstico correspondente ao ID informado.  
+Retorna o ponto tur√≠stico correspondente ao ID informado.  
 
-* **MÈtodo:** `GET`
+* **M√©todo:** `GET`
 * **URL:** `/pontos-turisticos/{id}`
-* **Acesso:** Autenticado  
+* **Acesso:** P√∫blico  
 
-### **Criar Ponto TurÌstico**
-Cria um novo ponto turÌstico.  
+### **Criar Ponto Tur√≠stico**
+Cria um novo ponto tur√≠stico.  
 
-* **MÈtodo:** `POST`
+* **M√©todo:** `POST`
 * **URL:** `/pontos-turisticos`
 * **Acesso:** Autenticado  
 
-**Corpo da RequisiÁ„o (JSON):**
+**Corpo da Requisi√ß√£o (JSON):**
 ```json
 {
   "nome": "Cristo Redentor",
-  "descricao": "Est·tua art dÈco de Jesus Cristo...",
+  "descricao": "Est√°tua art d√©co de Jesus Cristo...",
   "cidade": "Rio de Janeiro",
   "estado": "RJ",
   "pais": "Brasil",
   "endereco": "Parque Nacional da Tijuca",
   "latitude": -22.9519,
   "longitude": -43.2105,
-  "comoChegarTexto": "Pode ir de trem do Corcovado ou van oficial."
+  "comoChegarTexto": "Pode ir de trem do Corcovado ou van oficial.",
+  "tipo": "Monumento"
 }
 ```
 
-### **Atualizar Ponto TurÌstico**
-Atualiza as informaÁıes de um ponto turÌstico j· cadastrado no sistema.  
+### **Atualizar Ponto Tur√≠stico**
+Atualiza as informa√ß√µes de um ponto tur√≠stico.  
 
-* **MÈtodo:** `PUT`
+* **M√©todo:** `PUT`
 * **URL:** `/pontos-turisticos/{id}`
 * **Acesso:** Autenticado  
 
-### **Deletar Ponto TurÌstico**
-Apaga as informaÁıes sobre um ponto turÌstico cadastrado no sistema.  
+### **Deletar Ponto Tur√≠stico**
+Apaga as informa√ß√µes sobre um ponto tur√≠stico cadastrado no sistema.  
 
-* **MÈtodo:** `DELETE`
+* **M√©todo:** `DELETE`
 * **URL:** `/pontos-turisticos/{id}`
 * **Acesso:** Autenticado  
 
 ---
 
-## 3. Fotos e Upload (`/fotos`)
+## 3. Favoritos (`/favoritos`)
 
-### **Upload de Foto (VÌnculo com Ponto)**
-Envia o arquivo da imagem para o disco e salva os metadados no banco PostgreSQL.
+### **Alternar Favorito (Toggle)**
+Adiciona aos favoritos se n√£o existir, ou remove se j√° existir.  
 
-* **MÈtodo:** `POST`
+* **M√©todo:** `POST`
+* **URL:** `/favoritos/{pontoId}`
+* **Acesso:** Autenticado  
+
+### **Listar Favoritos**
+Lista todos os favoritos do usu√°rio logado.  
+
+* **M√©todo:** `GET`
+* **URL:** `/favoritos`
+* **Acesso:** Autenticado  
+
+---
+
+## 4. Fotos (`/fotos`)
+
+### **Upload de Foto (Arquivo)**
+Envia o arquivo da imagem para o disco e salva os metadados no banco.  
+
+* **M√©todo:** `POST`
 * **URL:** `/fotos/upload/{pontoId}`
 * **Acesso:** Autenticado  
 * **Content-Typ*e:** `multipart/form-data`
-
-**Par‚metros (Form Data):**  
-* **arquivo:** (Arquivo de imagem selecionado)
+* **Campo:** `arquivo` (Arquivo de imagem)
 
 ### **Listar Fotos**
-Lista todas as fotos.   
+Lista todas as fotos cadastradas (metadados).  
 
-* **MÈtodo:** `GET`
+* **M√©todo:** `GET`
 * **URL:** `/fotos`
-* **Acesso:** Autenticado  
+* **Acesso:** Autenticado
+
+### **Buscar Foto por ID**
+
+* **M√©todo:** `GET`
+* **URL:** `/fotos/{id}`
+* **Acesso:** Autenticado
+
+### **Atualizar Dados da Foto**
+
+* **M√©todo:** `PUT`
+* **URL:** `/fotos/{id}`
+* **Acesso:** Autenticado
+
+**Corpo da Requisi√ß√£o (JSON):**
+```
+{
+  "descricao": "Nova descri√ß√£o da foto"
+}
+```
 
 ### **Deletar Foto**
-Deleta uma foto especÌfica a partir do ID especificado.
+Deleta uma foto espec√≠fica a partir do ID especificado.
 
-* **MÈtodo:** `DELETE`
+* **M√©todo:** `DELETE`
 * **URL:** `/fotos/{id}`
 * **Acesso:** Autenticado  
 
 ---
 
-## 4. Hospedagens (`/hospedagens`)
+## 5. Hospedagens (`/hospedagens`)
 
 ### **Criar Hospedagem**
-Vincula uma hospedagem a um Ponto TurÌstico existente.
+Vincula uma hospedagem a um Ponto Tur√≠stico existente.
 
-* **MÈtodo:** `POST`
+* **M√©todo:** `POST`
 * **URL:** `/hospedagens`
 * **Acesso:** Autenticado  
 
-**Corpo da RequisiÁ„o (JSON):**
-```json
+**Corpo da Requisi√ß√£o (JSON):**
+```
 {
   "nome": "Hotel Central",
   "endereco": "Rua das Flores, 123",
@@ -157,122 +202,151 @@ Vincula uma hospedagem a um Ponto TurÌstico existente.
 ### **Listar Hospedagens**
 Lista todas as hospedagens cadastradas no sistema.
 
-* **MÈtodo:** `GET`
+* **M√©todo:** `GET`
 * **URL:** `/hospedagens`
-* **Acesso:** Autenticado 
+* **Acesso:** P√∫blico
+
+### **Buscar Hospedagem por ID**
+Retorna as informa√ß√µes da hospedagem correspondente ao ID informado.  
+
+* **M√©todo:** `GET`
+* **URL:** `/hospedagens/{id}`
+* **Acesso:** P√∫blico
+
+### **Atualizar Hospedagem**
+Atualiza as informa√ß√µes de uma hospedagem.
+
+* **M√©todo:** `PUT`
+* **URL:** `/hospedagens/{id}`
+* **Acesso:** Autenticado
+
+### **Deletar Hospedagem**
+Deleta as informa√ß√µes de uma hospedagem.
+
+* **M√©todo:** `DELETE`
+* **URL:** `/hospedagens/{id}`
+* **Acesso:** Autenticado
 
 ---
 
-## 5. AvaliaÁıes (`/avaliacoes`)
+## 6. Avalia√ß√µes (`/avaliacoes`)
 
-### **Enviar ou Editar AvaliaÁ„o**
-Envia uma nota (1-5) e um coment·rio justificativo. Se o usu·rio j· avaliou o ponto turÌstico anteriormente, a avaliaÁ„o ser· atualizada.  
+### **Enviar ou Editar Avalia√ß√£o**
+Envia uma nota (1-5) e um coment√°rio justificativo. Se o usu√°rio j√° avaliou o ponto tur√≠stico anteriormente, a avalia√ß√£o ser√° atualizada.  
 
-* **MÈtodo:** `POST`
+* **M√©todo:** `POST`
 * **URL:** `/avaliacoes`
 * **Acesso:** Autenticado  
 
-**Corpo da RequisiÁ„o (JSON):**
+**Corpo da Requisi√ß√£o (JSON):**
 ```json
 {
   "pontoTuristicoId": "1",
   "nota": 5,
-  "comentario": "Excelente local para visitar com a famÌlia!"
+  "comentario": "Excelente local para visitar com a fam√≠lia!"
 }
 ```
 
-Obs: O pontoTuristicoId deve ser o ID (n˙mero) do ponto turÌstico, enviado como string ou n˙mero.   
+Obs: O pontoTuristicoId deve ser o ID (n√∫mero) do ponto tur√≠stico, enviado como string ou n√∫mero.   
 
-### **Obter MÈdia de AvaliaÁıes**
-Retorna a mÈdia aritmÈtica das notas de um ponto turÌstico.   
+### **Obter M√©dia de Avalia√ß√µes**
+Retorna a m√©dia aritm√©tica das notas de um ponto tur√≠stico.   
 
-* **MÈtodo:** `GET`
+* **M√©todo:** `GET`
 * **URL:** `/avaliacoes/media/{pontoId}`
-* **Acesso:** P˙blico  
+* **Acesso:** P√∫blico  
 
 ---
 
-## 6. Coment·rios e Perguntas (`/comentarios`)
+## 7. Coment√°rios e Perguntas (`/comentarios`)
 
-### **Criar Coment·rio**
-Publica um novo coment·rio/pergunta em um ponto turÌstico.   
+### **Criar Coment√°rio**
+Publica um novo coment√°rio/pergunta em um ponto tur√≠stico.   
 
-* **MÈtodo:** `POST`
+* **M√©todo:** `POST`
 * **URL:** `/comentarios`
 * **Acesso:** Autenticado  
 
-**Corpo da RequisiÁ„o (JSON):**
+**Corpo da Requisi√ß√£o (JSON):**
 ```json
 {
   "pontoTuristicoId": "1",
-  "texto": "AlguÈm sabe o hor·rio de funcionamento?",
+  "texto": "Qual o hor√°rio de funcionamento?",
   "metadata": {
-      "device": "mobile",
-      "os": "android"
+      "device": "mobile"
   }
 }
 ```
 
-### **Listar Coment·rios**
-Lista todos os coment·rios de um ponto turÌstico, ordenados do mais recente para o mais antigo.
+### **Listar Coment√°rios**
+Lista todos os coment√°rios de um ponto tur√≠stico, ordenados do mais recente para o mais antigo.
 
-* **MÈtodo:** `GET`
+* **M√©todo:** `GET`
 * **URL:** `/comentarios/{pontoId}`
-* **Acesso:** P˙blico  
+* **Acesso:** P√∫blico
 
-### **Responder a um Coment·rio**
-Adiciona uma resposta a um coment·rio existente.
+### **Atualizar Coment√°rio**
+O usu√°rio s√≥ pode atualizar seus pr√≥prios coment√°rios.  
 
-* **MÈtodo:** `POST`
-* **URL:** `/comentarios/{id}/responder`
-* **Acesso:** Autenticado   
+* **M√©todo:** `PUT`
+* **URL:** `/comentarios/{id}`
+* **Acesso:** Autenticado (Dono do coment√°rio)
 
-**Corpo da RequisiÁ„o (JSON):**
-```json
+**Corpo da Requisi√ß√£o (JSON):**
+```
 {
-  "texto": "Abre todos os dias ‡s 08h."
+  "texto": "Texto corrigido."
 }
 ```
 
-### **Deletar Coment·rio**
-Remove um coment·rio pelo seu ID (MongoDB ObjectId).  
+### **Responder a um Coment√°rio**
+Adiciona uma resposta a um coment√°rio existente.
 
-* **MÈtodo:** `DELETE`
-* **URL:** `/comentarios/{id}`
+* **M√©todo:** `POST`
+* **URL:** `/comentarios/{id}/responder`
 * **Acesso:** Autenticado   
 
-**Regras de Permiss„o:**
-* _USER_: SÛ pode deletar seus prÛprios coment·rios.
-* _ADMIN_: Pode deletar qualquer coment·rio.
+**Corpo da Requisi√ß√£o (JSON):**
+```json
+{
+  "texto": "Abre todos os dias √†s 08h."
+}
+```
+
+### **Deletar Coment√°rio**
+Remove um coment√°rio pelo seu ID (MongoDB ObjectId).  
+
+* **M√©todo:** `DELETE`
+* **URL:** `/comentarios/{id}`
+* **Acesso:** Autenticado (Dono ou Admin) 
 
 ---
 
-## 7. ImportaÁ„o e ExportaÁ„o (`/pontos-turisticos`)
+## 8. Importa√ß√£o e Exporta√ß√£o (`/pontos-turisticos`)
 
 ### **Exportar para JSON**
 
-* **MÈtodo:** `GET`
+* **M√©todo:** `GET`
 * **URL:** `/pontos-turisticos/export/json`
-* **Acesso:** Autenticado   
 
 ### **Exportar para XML**
 
-* **MÈtodo:** `GET`
+* **M√©todo:** `GET`
 * **URL:** `/pontos-turisticos/export/xml`
 * **Acesso:** Autenticado 
 
 ### **Importar de JSON**
 
-* **MÈtodo:** `POST`
+* **M√©todo:** `POST`
 * **URL:** `/pontos-turisticos/import/json`
 * **Acesso:** Autenticado 
 * **Content-Type:** `multipart/form-data`
-* **Campo:**  arquivo` (arquivo .json)
+* **Campo:**  `arquivo` (arquivo .json)
   
 ### **Importar de XML**
 
-* **MÈtodo:** `POST`
+* **M√©todo:** `POST`
 * **URL:** `/pontos-turisticos/import/xml`
 * **Acesso:** Autenticado 
 * **Content-Type:** `multipart/form-data`
-* **Campo:**  arquivo` (arquivo .xml)
+* **Campo:**  `arquivo` (arquivo .xml)

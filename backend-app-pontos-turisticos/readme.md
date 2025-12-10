@@ -16,47 +16,50 @@ O projeto foi construído utilizando Java 17 e Spring Boot, com a seguinte stack
 
 O sistema utiliza uma abordagem híbrida, conforme os requisitos da disciplina:  
 
-1. **PostgreSQL (Banco Relacional):**
-   - Utilizado para dados estruturados e críticos que exigem integridade referencial e transacional;
-   - Tecnologia: Spring Data JPA / Hibernate.
-
-2. **MongoDB (Banco NoSQL Documental):**
-   - Utilizado para dados com estrutura flexível e hierárquica;
-   - Tecnologia: Spring Data MongoDB.
-
-3. **Redis (Cache/Chave-Valor):**
-   - Utilizado para implementação de estratégias de cache (ex: cachear listagem de pontos turísticos mais acessados), visando alta performance.
-
+1. **PostgreSQL:** Dados relacionais (Usuários, Pontos Turísticos, Hospedagens, Favoritos).
+2. **MongoDB:** Dados não relacionais (Comentários, Fotos/Metadados).
+3. **Redis:** Cache distribuído para performance (ex: cache de pontos turísticos).
+   
 ## Pré-requisitos
 
 Para executar o projeto localmente, é necessário ter instalado:
 
 - Java JDK 17+
 - Maven (ou utilizar o wrapper ./mvnw incluso)
-- PostgreSQL (rodando na porta 5432)
-- MongoDB (rodando na porta 27017)
-- Redis (rodando na porta 6379)
+- Docker e Docker Compose (Recomendado para subir os bancos de dados)
 
 ## Configuração
 
 Antes de rodar a aplicação, verifique o arquivo `src/main/resources/application.properties`.
 
-1. **Banco de Dados PostgreSQL**
+1. **Subir os Bancos de Dados (Via Docker)**
 
-Crie um banco de dados chamado _bd_turismo_, em seu PostgreSQL, ou altere a URL de conexão:  
+O projeto já inclui um arquivo `docker-compose.yml` que configura o PostgreSQL, MongoDB e Redis.  
 
-```
-spring.datasource.url=jdbc:postgresql://localhost:5432/bd_turismo
-spring.datasource.username=postgres
-spring.datasource.password=123456
-```
-
-2. **JWT Secret**
-
-A chave secreta para assinatura dos tokens está definida na propriedade abaixo (para produção, utilize variáveis de ambiente):  
+Na pasta raiz do projeto (onde está o `docker-compose.yml`), execute:  
 
 ```
-api.security.token.secret=LTcvOgi6eY7lLHIuSJXBVL07ikGpK2xbIC4qiPA6aqqZQ8dsH8vAZw6wUXOKPPmy
+docker-compose up -d
+```
+Isso iniciará os containers:  
+* **Postgres:** Porta 5432 (User: postgres, Pass: 123456, DB: bd_turismo)
+* **MongoDB:** Porta 27017
+* **Redis:** Porta 6379
+
+2. **Verificar Configurações**
+
+O arquivo `src/main/resources/application.properties` já está configurado para conectar nestes serviços locais:  
+
+```
+spring.datasource.url=jdbc:postgresql://localhost:5432/bd_turismo  
+spring.datasource.username=postgres  
+spring.datasource.password=123456  
+
+spring.data.mongodb.host=localhost  
+spring.data.mongodb.port=27017  
+
+spring.data.redis.host=localhost  
+spring.data.redis.port=6379  
 ```
 
 ## Como Executar

@@ -2,7 +2,7 @@ package com.inf.software_para_persistencia_de_dados.backend_app_pontos_turistico
 
 import com.inf.software_para_persistencia_de_dados.backend_app_pontos_turisticos.dto.FotoDTO;
 import com.inf.software_para_persistencia_de_dados.backend_app_pontos_turisticos.entities.Foto;
-import com.inf.software_para_persistencia_de_dados.backend_app_pontos_turisticos.entities.PontoTuristico;
+import com.inf.software_para_persistencia_de_dados.backend_app_pontos_turisticos.exceptions.BadRequestException;
 import com.inf.software_para_persistencia_de_dados.backend_app_pontos_turisticos.exceptions.ResourceNotFoundException;
 import com.inf.software_para_persistencia_de_dados.backend_app_pontos_turisticos.repositories.FotoRepository;
 import com.inf.software_para_persistencia_de_dados.backend_app_pontos_turisticos.repositories.PontoTuristicoRepository;
@@ -18,7 +18,6 @@ import java.util.UUID;
 
 @Service
 public class FotoService {
-    // Pasta onde as fotos serão salvas na raiz do projeto
     private final Path diretorioUploads = Paths.get("uploads");
 
     private final FotoRepository fotoRepository;
@@ -40,8 +39,14 @@ public class FotoService {
     }
 
     public Foto salvarFoto(MultipartFile arquivo, Long pontoId) throws IOException {
-        PontoTuristico ponto = pontoTuristicoRepository.findById(pontoId)
-                .orElseThrow(() -> new ResourceNotFoundException("Ponto turístico não encontrado"));
+        if (!pontoTuristicoRepository.existsById(pontoId)) {
+            throw new ResourceNotFoundException("Ponto turístico não encontrado ID: " + pontoId);
+        }
+
+        long qtdeFotos = fotoRepository.countByPontoTuristicoId(pontoId);
+        if (qtdeFotos >= 10) {
+            throw new BadRequestException("Limite máximo de 10 fotos por ponto turístico atingido.");
+        }
 
         String nomeArquivoOriginal = arquivo.getOriginalFilename();
         String extensao = nomeArquivoOriginal != null && nomeArquivoOriginal.contains(".")
@@ -56,7 +61,7 @@ public class FotoService {
         foto.setNomeArquivo(nomeArquivoOriginal);
         foto.setUrl(caminhoCompleto.toAbsolutePath().toString());
         foto.setTamanhoBytes(arquivo.getSize());
-        foto.setPontoTuristico(ponto);
+        foto.setPontoTuristicoId(pontoId); // Armazena apenas o ID
 
         return fotoRepository.save(foto);
     }
@@ -65,27 +70,28 @@ public class FotoService {
         return fotoRepository.findAll();
     }
 
-    public Foto findById(Long id) {
+    public Foto findById(String id) {
         return fotoRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Foto não encontrada com ID: " + id));
     }
 
-    public Foto update(Long id, FotoDTO dto) {
+    public Foto update(String id, FotoDTO dto) {
         Foto foto = findById(id);
 
         if (dto.getUrl() != null) foto.setUrl(dto.getUrl());
         if (dto.getDescricao() != null) foto.setDescricao(dto.getDescricao());
 
         if (dto.getPontoTuristicoId() != null) {
-            PontoTuristico ponto = pontoTuristicoRepository.findById(dto.getPontoTuristicoId())
-                    .orElseThrow(() -> new ResourceNotFoundException("Ponto turístico não encontrado"));
-            foto.setPontoTuristico(ponto);
+            if (!pontoTuristicoRepository.existsById(dto.getPontoTuristicoId())) {
+                throw new ResourceNotFoundException("Ponto turístico não encontrado");
+            }
+            foto.setPontoTuristicoId(dto.getPontoTuristicoId());
         }
 
         return fotoRepository.save(foto);
     }
 
-    public void delete(Long id) {
+    public void delete(String id) {
         Foto foto = findById(id);
         try {
             Files.deleteIfExists(Paths.get(foto.getUrl()));
