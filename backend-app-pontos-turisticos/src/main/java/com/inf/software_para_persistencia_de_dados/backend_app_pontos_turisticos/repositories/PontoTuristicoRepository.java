@@ -23,4 +23,8 @@ public interface PontoTuristicoRepository extends JpaRepository<PontoTuristico, 
             @Param("tipo") String tipo,
             Pageable pageable
     );
+
+    boolean existsByNomeIgnoreCaseAndCidadeIgnoreCase(String nome, String cidade);
+
+    boolean existsByNomeIgnoreCaseAndCidadeIgnoreCaseAndIdNot(String nome, String cidade, Long id);
 }
