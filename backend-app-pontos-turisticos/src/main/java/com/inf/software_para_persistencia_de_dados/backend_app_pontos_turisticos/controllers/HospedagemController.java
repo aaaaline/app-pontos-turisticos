@@ -24,9 +24,20 @@ public class HospedagemController {
     }
 
     @GetMapping
-    public ResponseEntity<List<Hospedagem>> listar() {
-        return ResponseEntity.ok(service.findAll());
+    public ResponseEntity<List<HospedagemDTO>> listar() {
+        List<HospedagemDTO> dtos = service.findAll().stream()
+                .map(h -> new HospedagemDTO(
+                        h.getId(),
+                        h.getNome(),
+                        h.getEndereco(),
+                        h.getPrecoMedio() != null ? h.getPrecoMedio().doubleValue() : null,
+                        h.getPontoTuristico() != null ? h.getPontoTuristico().getId() : null
+                ))
+                .toList();
+
+        return ResponseEntity.ok(dtos);
     }
+
 
     @GetMapping("/{id}")
     public ResponseEntity<Hospedagem> buscarPorId(@PathVariable Long id) {

@@ -1,5 +1,7 @@
 package com.inf.software_para_persistencia_de_dados.backend_app_pontos_turisticos.entities;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
@@ -19,5 +21,8 @@ public class Foto {
     private String descricao;
     private Long tamanhoBytes;
 
-    private Long pontoTuristicoId;
+    @ManyToOne
+    @JoinColumn(name = "ponto_turistico_id")
+    @JsonIgnore
+    private PontoTuristico pontoTuristico;
 }

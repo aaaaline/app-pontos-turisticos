@@ -1,5 +1,6 @@
 package com.inf.software_para_persistencia_de_dados.backend_app_pontos_turisticos.controllers;
 
+import com.inf.software_para_persistencia_de_dados.backend_app_pontos_turisticos.dto.FotoDTO;
 import com.inf.software_para_persistencia_de_dados.backend_app_pontos_turisticos.dto.PontoTuristicoDTO;
 import com.inf.software_para_persistencia_de_dados.backend_app_pontos_turisticos.entities.PontoTuristico;
 import com.inf.software_para_persistencia_de_dados.backend_app_pontos_turisticos.services.ExportacaoImportacaoService;
@@ -33,7 +34,7 @@ public class PontoTuristicoController {
     }
 
     @GetMapping
-    public ResponseEntity<Page<PontoTuristico>> listar(
+    public ResponseEntity<Page<PontoTuristicoDTO>> listar(
             @RequestParam(required = false) String nome,
             @RequestParam(required = false) String cidade,
             @RequestParam(required = false) String estado,
@@ -41,13 +42,46 @@ public class PontoTuristicoController {
             @RequestParam(required = false) Double mediaMinima, // NOVO PARÂMETRO
             @PageableDefault(page = 0, size = 10, sort = "nome", direction = Sort.Direction.ASC) Pageable pageable
     ) {
-        return ResponseEntity.ok(service.findAll(nome, cidade, estado, tipo, mediaMinima, pageable));
+        Page<PontoTuristico> page = service.findAll(nome, cidade, estado, tipo, mediaMinima, pageable);
+
+        Page<PontoTuristicoDTO> dtoPage = page.map(p -> {
+            PontoTuristicoDTO dto = new PontoTuristicoDTO();
+            dto.setId(p.getId());
+            dto.setNome(p.getNome());
+            dto.setDescricao(p.getDescricao());
+            dto.setCidade(p.getCidade());
+            dto.setEstado(p.getEstado());
+            dto.setPais(p.getPais());
+            dto.setEndereco(p.getEndereco());
+            dto.setLatitude(p.getLatitude());
+            dto.setLongitude(p.getLongitude());
+            dto.setComoChegarTexto(p.getComoChegarTexto());
+            dto.setTipo(p.getTipo());
+            return dto;
+        });
+
+        return ResponseEntity.ok(dtoPage);
     }
 
     // --- Find By ID ---
     @GetMapping("/{id}")
-    public ResponseEntity<PontoTuristico> buscarPorId(@PathVariable Long id) {
-        return ResponseEntity.ok(service.findById(id));
+    public ResponseEntity<PontoTuristicoDTO> buscarPorId(@PathVariable Long id) {
+        PontoTuristico p = service.findById(id);
+
+        PontoTuristicoDTO dto = new PontoTuristicoDTO();
+        dto.setId(p.getId());
+        dto.setNome(p.getNome());
+        dto.setDescricao(p.getDescricao());
+        dto.setCidade(p.getCidade());
+        dto.setEstado(p.getEstado());
+        dto.setPais(p.getPais());
+        dto.setEndereco(p.getEndereco());
+        dto.setLatitude(p.getLatitude());
+        dto.setLongitude(p.getLongitude());
+        dto.setComoChegarTexto(p.getComoChegarTexto());
+        dto.setTipo(p.getTipo());
+
+        return ResponseEntity.ok(dto);
     }
 
     // --- Update ---

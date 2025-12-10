@@ -1,10 +1,13 @@
 package com.inf.software_para_persistencia_de_dados.backend_app_pontos_turisticos.dto;
 
+import java.util.List;
+
 public class FotoDTO {
     private String id;
     private String url;
     private String descricao;
     private Long pontoTuristicoId;
+    private List<FotoDTO> fotos;
 
     public FotoDTO() {}
 
@@ -25,4 +28,8 @@ public class FotoDTO {
 
     public Long getPontoTuristicoId() { return pontoTuristicoId; }
     public void setPontoTuristicoId(Long pontoTuristicoId) { this.pontoTuristicoId = pontoTuristicoId; }
+
+    public List<FotoDTO> getFotos() { return fotos; }
+    public void setFotos(List<FotoDTO> fotos) { this.fotos = fotos; }
+
 }
