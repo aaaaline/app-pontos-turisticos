@@ -39,6 +39,11 @@ const AdminPage = () => {
           mimeType = 'application/xml';
           fileExtension = 'xml';
           break;
+        case 'csv':
+          response = await pontosAPI.exportCSV();
+          mimeType = 'text/csv';
+          fileExtension = 'csv';
+          break;
         default:
           throw new Error('Formato não suportado');
       }
@@ -59,9 +64,10 @@ const AdminPage = () => {
 
       setMessage({ 
         type: 'success', 
-        text: `Dados exportados com sucesso!` 
+        text: `Dados exportados com sucesso em formato ${exportFormat.toUpperCase()}!` 
       });
     } catch (error) {
+      console.error('Erro ao exportar:', error);
       setMessage({ 
         type: 'error', 
         text: 'Erro ao exportar dados.' 
@@ -76,10 +82,10 @@ const AdminPage = () => {
     if (!file) return;
 
     const extension = file.name.split('.').pop().toLowerCase();
-    if (!['json', 'xml'].includes(extension)) {
+    if (!['json', 'xml', 'csv'].includes(extension)) {
       setMessage({ 
         type: 'error', 
-        text: 'Formato de arquivo não suportado. Use JSON ou XML.' 
+        text: 'Formato de arquivo não suportado. Use JSON, XML ou CSV.' 
       });
       return;
     }
@@ -108,22 +114,30 @@ const AdminPage = () => {
         case 'xml':
           response = await pontosAPI.importXML(importFile);
           break;
+        case 'csv':
+          response = await pontosAPI.importCSV(importFile);
+          break;
         default:
           throw new Error('Formato não suportado');
       }
 
       setMessage({ 
         type: 'success', 
-        text: 'Dados importados com sucesso!' 
+        text: `Dados importados com sucesso!` 
       });
       setImportFile(null);
       
       const fileInput = document.getElementById('fileImport');
       if (fileInput) fileInput.value = '';
     } catch (error) {
+      console.error('Erro ao importar:', error);
+      const errorMsg = error.response?.data?.message || 
+                      error.response?.data?.error || 
+                      error.message || 
+                      'Erro desconhecido';
       setMessage({ 
         type: 'error', 
-        text: `Erro ao importar: ${error.message}` 
+        text: `Erro ao importar: ${errorMsg}` 
       });
     } finally {
       setLoading(false);
@@ -133,9 +147,9 @@ const AdminPage = () => {
   return (
     <div style={styles.container}>
       <div style={styles.header}>
-        <h1 style={styles.subtitle}>
+        <h2 style={styles.subtitle}>
           Importar ou Exportar dados de pontos turísticos
-        </h1>
+        </h2>
       </div>
 
       {message.text && (
@@ -183,6 +197,16 @@ const AdminPage = () => {
                 <FileCode size={20} />
                 XML
               </button>
+              <button
+                onClick={() => setExportFormat('csv')}
+                style={{
+                  ...styles.formatButton,
+                  ...(exportFormat === 'csv' ? styles.formatButtonActive : {})
+                }}
+              >
+                <FileType size={20} />
+                CSV
+              </button>
             </div>
           </div>
 
@@ -211,7 +235,7 @@ const AdminPage = () => {
             <div style={styles.fileInputContainer}>
               <input
                 type="file"
-                accept=".json,.xml"
+                accept=".json,.xml,.csv"
                 onChange={handleFileSelect}
                 style={styles.fileInput}
                 id="fileImport"
@@ -256,6 +280,12 @@ const styles = {
     marginBottom: '2rem',
     textAlign: 'center'
   },
+  title: {
+    fontSize: '2rem',
+    fontWeight: '600',
+    color: 'var(--text-primary)',
+    marginBottom: '0.5rem'
+  },
   subtitle: {
     fontSize: '1rem',
     color: '#6c757d',
@@ -285,7 +315,7 @@ const styles = {
     display: 'grid',
     gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))',
     gap: '2rem',
-    marginBottom: '3rem'
+    marginBottom: '2rem'
   },
   card: {
     backgroundColor: '#fff',
@@ -298,7 +328,7 @@ const styles = {
     display: 'flex',
     alignItems: 'center',
     gap: '0.75rem',
-    marginBottom: '1rem'
+    marginBottom: '1.5rem'
   },
   cardTitle: {
     fontSize: '1.5rem',
@@ -318,7 +348,7 @@ const styles = {
   },
   formatButtons: {
     display: 'grid',
-    gridTemplateColumns: 'repeat(2, 1fr)',
+    gridTemplateColumns: 'repeat(3, 1fr)',
     gap: '0.5rem'
   },
   formatButton: {
@@ -370,13 +400,21 @@ const styles = {
   infoBox: {
     display: 'flex',
     gap: '0.75rem',
-    padding: '1rem',
+    padding: '1.5rem',
     backgroundColor: '#E7F3FF',
     border: '1px solid #B3D9FF',
     borderRadius: '8px',
     fontSize: '0.9rem',
     color: '#004085',
     alignItems: 'flex-start'
+  },
+  infoTitle: {
+    fontWeight: '600',
+    marginBottom: '0.5rem'
+  },
+  infoList: {
+    margin: 0,
+    paddingLeft: '1.5rem'
   },
   primaryButton: {
     width: '100%',

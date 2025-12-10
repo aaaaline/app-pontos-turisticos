@@ -11,7 +11,8 @@ const PontoFormModal = ({ isOpen, onClose, onSuccess, pontoEdit }) => {
     latitude: '',
     longitude: '',
     endereco: '',
-    comoChegar: ''
+    comoChegar: '',
+    tipo: ''
   });
   const [error, setError] = useState('');
 
@@ -26,7 +27,8 @@ const PontoFormModal = ({ isOpen, onClose, onSuccess, pontoEdit }) => {
         latitude: pontoEdit.latitude || '',
         longitude: pontoEdit.longitude || '',
         endereco: pontoEdit.endereco || '',
-        comoChegar: pontoEdit.comoChegar || ''
+        comoChegar: pontoEdit.comoChegarTexto || pontoEdit.comoChegar || '',
+        tipo: pontoEdit.tipo || ''
       });
     }
   }, [pontoEdit]);
@@ -74,7 +76,8 @@ const PontoFormModal = ({ isOpen, onClose, onSuccess, pontoEdit }) => {
         latitude: '',
         longitude: '',
         endereco: '',
-        comoChegar: ''
+        comoChegar: '',
+        tipo: ''
       });
       
       alert(pontoEdit ? 'Ponto atualizado com sucesso!' : 'Ponto cadastrado com sucesso!');
@@ -93,7 +96,8 @@ const PontoFormModal = ({ isOpen, onClose, onSuccess, pontoEdit }) => {
       latitude: '',
       longitude: '',
       endereco: '',
-      comoChegar: ''
+      comoChegar: '',
+      tipo: ''
     });
     setError('');
     onClose();
@@ -124,6 +128,31 @@ const PontoFormModal = ({ isOpen, onClose, onSuccess, pontoEdit }) => {
             </div>
 
             <div style={styles.formGroup}>
+              <label style={styles.label}>Tipo</label>
+              <select
+                name="tipo"
+                value={formData.tipo}
+                onChange={handleChange}
+                className="input"
+              >
+                <option value="">Selecione...</option>
+                <option value="parque">Parque</option>
+                <option value="museu">Museu</option>
+                <option value="praia">Praia</option>
+                <option value="monumento">Monumento</option>
+                <option value="igreja">Igreja</option>
+                <option value="mirante">Mirante</option>
+                <option value="shopping">Shopping</option>
+                <option value="restaurante">Restaurante</option>
+                <option value="cachoeira">Cachoeira</option>
+                <option value="trilha">Trilha</option>
+                <option value="outro">Outro</option>
+              </select>
+            </div>
+          </div>
+
+          <div style={styles.row}>
+            <div style={styles.formGroup}>
               <label style={styles.label}>Cidade *</label>
               <input
                 type="text"
@@ -134,9 +163,7 @@ const PontoFormModal = ({ isOpen, onClose, onSuccess, pontoEdit }) => {
                 placeholder="Ex: Goiânia"
               />
             </div>
-          </div>
 
-          <div style={styles.row}>
             <div style={styles.formGroup}>
               <label style={styles.label}>Estado</label>
               <input
@@ -149,18 +176,18 @@ const PontoFormModal = ({ isOpen, onClose, onSuccess, pontoEdit }) => {
                 maxLength="2"
               />
             </div>
+          </div>
 
-            <div style={styles.formGroup}>
-              <label style={styles.label}>País</label>
-              <input
-                type="text"
-                name="pais"
-                value={formData.pais}
-                onChange={handleChange}
-                className="input"
-                placeholder="Ex: Brasil"
-              />
-            </div>
+          <div style={styles.formGroup}>
+            <label style={styles.label}>País</label>
+            <input
+              type="text"
+              name="pais"
+              value={formData.pais}
+              onChange={handleChange}
+              className="input"
+              placeholder="Ex: Brasil"
+            />
           </div>
 
           <div style={styles.formGroup}>
@@ -251,7 +278,9 @@ const PontoFormModal = ({ isOpen, onClose, onSuccess, pontoEdit }) => {
 
 const styles = {
   modalLarge: {
-    maxWidth: '700px'
+    maxWidth: '700px',
+    maxHeight: '90vh',
+    overflowY: 'auto'
   },
   header: {
     display: 'flex',

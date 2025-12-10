@@ -1,13 +1,37 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Star, X } from 'lucide-react';
 import { avaliacoesAPI } from '../../services/api';
 
-const AvaliacaoForm = ({ pontoId, avaliacaoExistente, onClose, onSuccess }) => {
-  const [nota, setNota] = useState(avaliacaoExistente?.nota || 0);
+const AvaliacaoForm = ({ pontoId, onClose, onSuccess }) => {
+  const [avaliacaoExistente, setAvaliacaoExistente] = useState(null);
+  const [nota, setNota] = useState(0);
   const [notaHover, setNotaHover] = useState(0);
-  const [comentario, setComentario] = useState(avaliacaoExistente?.comentario || '');
+  const [comentario, setComentario] = useState('');
   const [error, setError] = useState('');
   const [isEnviando, setIsEnviando] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    loadAvaliacaoExistente();
+  }, [pontoId]);
+
+  const loadAvaliacaoExistente = async () => {
+    try {
+      setIsLoading(true);
+      const response = await avaliacoesAPI.getByUserAndPonto(pontoId);
+      
+      if (response.data) {
+        setAvaliacaoExistente(response.data);
+        setNota(response.data.nota);
+        setComentario(response.data.comentario || '');
+      }
+    } catch (err) {
+      // Usuário ainda não avaliou - isso é esperado
+      console.log('Nenhuma avaliação prévia encontrada');
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -52,6 +76,16 @@ const AvaliacaoForm = ({ pontoId, avaliacaoExistente, onClose, onSuccess }) => {
       setIsEnviando(false);
     }
   };
+
+  if (isLoading) {
+    return (
+      <div className="card" style={styles.container}>
+        <p style={{ textAlign: 'center', color: 'var(--text-secondary)' }}>
+          Carregando...
+        </p>
+      </div>
+    );
+  }
 
   return (
     <div className="card" style={styles.container}>

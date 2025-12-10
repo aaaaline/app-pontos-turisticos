@@ -50,13 +50,68 @@ export const authAPI = {
 };
 
 export const pontosAPI = {
-  getAll: (params) => api.get('/pontos-turisticos', { params }),
+  // Busca com paginação e filtros
+  getAll: (params = {}) => {
+    const queryParams = {
+      page: params.page || 0,
+      size: params.size || 10,
+      sort: params.sort || 'nome,asc',
+      nome: params.nome || undefined,
+      cidade: params.cidade || undefined,
+      estado: params.estado || undefined,
+      tipo: params.tipo || undefined,
+    };
+    
+    Object.keys(queryParams).forEach(key => 
+      queryParams[key] === undefined && delete queryParams[key]
+    );
+    
+    return api.get('/pontos-turisticos', { params: queryParams });
+  },
+  
   getById: (id) => api.get(`/pontos-turisticos/${id}`),
-  create: (data) => api.post('/pontos-turisticos', data),
-  update: (id, data) => api.put(`/pontos-turisticos/${id}`, data),
+  
+  create: (data) => api.post('/pontos-turisticos', {
+    nome: data.nome,
+    descricao: data.descricao,
+    cidade: data.cidade,
+    estado: data.estado,
+    pais: data.pais || 'Brasil',
+    latitude: data.latitude,
+    longitude: data.longitude,
+    endereco: data.endereco,
+    comoChegarTexto: data.comoChegarTexto,
+    tipo: data.tipo
+  }),
+  
+  update: (id, data) => api.put(`/pontos-turisticos/${id}`, {
+    nome: data.nome,
+    descricao: data.descricao,
+    cidade: data.cidade,
+    estado: data.estado,
+    pais: data.pais || 'Brasil',
+    latitude: data.latitude,
+    longitude: data.longitude,
+    endereco: data.endereco,
+    comoChegarTexto: data.comoChegarTexto,
+    tipo: data.tipo
+  }),
+  
   delete: (id) => api.delete(`/pontos-turisticos/${id}`),
-  exportJSON: () => api.get('/pontos-turisticos/export/json'),
-  exportXML: () => api.get('/pontos-turisticos/export/xml'),
+  
+  // Exportação e Importação
+  exportJSON: () => api.get('/pontos-turisticos/export/json', {
+    responseType: 'text'
+  }),
+  
+  exportXML: () => api.get('/pontos-turisticos/export/xml', {
+    responseType: 'text'
+  }),
+  
+  exportCSV: () => api.get('/pontos-turisticos/export/csv', {
+    responseType: 'text'
+  }),
+  
   importJSON: (file) => {
     const formData = new FormData();
     formData.append('arquivo', file);
@@ -64,6 +119,7 @@ export const pontosAPI = {
       headers: { 'Content-Type': 'multipart/form-data' },
     });
   },
+  
   importXML: (file) => {
     const formData = new FormData();
     formData.append('arquivo', file);
@@ -71,54 +127,106 @@ export const pontosAPI = {
       headers: { 'Content-Type': 'multipart/form-data' },
     });
   },
+  
+  importCSV: (file) => {
+    const formData = new FormData();
+    formData.append('arquivo', file);
+    return api.post('/pontos-turisticos/import/csv', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+  }
 };
 
 export const fotosAPI = {
+  getAll: () => api.get('/fotos'),
+  getById: (id) => api.get(`/fotos/${id}`),
+  create: (data) => api.post('/fotos', data),
+  update: (id, data) => api.put(`/fotos/${id}`, data),
+  delete: (id) => api.delete(`/fotos/${id}`),
   upload: (pontoId, file) => {
     const formData = new FormData();
     formData.append('arquivo', file);
     return api.post(`/fotos/upload/${pontoId}`, formData, {
       headers: { 'Content-Type': 'multipart/form-data' },
     });
-  },
-  delete: (fotoId) => api.delete(`/fotos/${fotoId}`),
+  }
 };
 
 export const avaliacoesAPI = {
   create: (data) => api.post('/avaliacoes', {
-    pontoTuristicoId: data.pontoTuristicoId,
+    pontoTuristicoId: String(data.pontoTuristicoId),
     nota: data.nota,
-    comentario: data.comentario
+    comentario: data.comentario || ''
   }),
+  
   update: (id, data) => api.put(`/avaliacoes/${id}`, {
+    pontoTuristicoId: String(data.pontoTuristicoId),
     nota: data.nota,
-    comentario: data.comentario
+    comentario: data.comentario || ''
   }),
+  
   delete: (id) => api.delete(`/avaliacoes/${id}`),
-  getMedia: (pontoId) => api.get(`/avaliacoes/media/${pontoId}`)
+  
+  getMedia: (pontoId) => api.get(`/avaliacoes/media/${pontoId}`),
+  
+  getByUserAndPonto: (pontoId) => 
+    api.get(`/avaliacoes/usuario/ponto/${pontoId}`)
 };
 
 export const comentariosAPI = {
   create: (data) => api.post('/comentarios', {
-    pontoTuristicoId: data.pontoTuristicoId,
+    pontoTuristicoId: String(data.pontoTuristicoId),
+    texto: data.texto,
+    metadata: data.metadata || {
+      device: navigator.userAgent.includes('Mobile') ? 'mobile' : 'desktop',
+      language: 'pt'
+    }
+  }),
+  
+  update: (id, data) => api.put(`/comentarios/${id}`, {
     texto: data.texto,
     metadata: data.metadata
   }),
-  update: (id, data) => api.put(`/comentarios/${id}`, data),
+  
   delete: (id) => api.delete(`/comentarios/${id}`),
-  getByPonto: (pontoId) => api.get(`/comentarios/${pontoId}`),
+  
+  getByPonto: (pontoId) => api.get(`/comentarios/${String(pontoId)}`),
+  
   addResposta: (comentarioId, resposta) => 
     api.post(`/comentarios/${comentarioId}/responder`, {
       texto: resposta.texto
-    }),
+    })
 };
 
 export const hospedagensAPI = {
-  create: (data) => api.post('/hospedagens', data),
-  update: (id, data) => api.put(`/hospedagens/${id}`, data),
+  create: (data) => api.post('/hospedagens', {
+    nome: data.nome,
+    endereco: data.endereco,
+    telefone: data.telefone,
+    tipo: data.tipo,
+    precoMedio: data.precoMedio,
+    site: data.site,
+    pontoTuristicoId: data.pontoTuristicoId
+  }),
+  
+  update: (id, data) => api.put(`/hospedagens/${id}`, {
+    nome: data.nome,
+    endereco: data.endereco,
+    telefone: data.telefone,
+    tipo: data.tipo,
+    precoMedio: data.precoMedio,
+    site: data.site,
+    pontoTuristicoId: data.pontoTuristicoId
+  }),
+  
   delete: (id) => api.delete(`/hospedagens/${id}`),
+  
   getAll: () => api.get('/hospedagens'),
+  
   getById: (id) => api.get(`/hospedagens/${id}`),
+  
+  getByPonto: (pontoId) => 
+    api.get('/hospedagens', { params: { pontoTuristicoId: pontoId } })
 };
 
 export default api;
