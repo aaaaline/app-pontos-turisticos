@@ -3,6 +3,7 @@ package com.inf.software_para_persistencia_de_dados.backend_app_pontos_turistico
 import com.inf.software_para_persistencia_de_dados.backend_app_pontos_turisticos.dto.FotoDTO;
 import com.inf.software_para_persistencia_de_dados.backend_app_pontos_turisticos.entities.Foto;
 import com.inf.software_para_persistencia_de_dados.backend_app_pontos_turisticos.entities.PontoTuristico;
+import com.inf.software_para_persistencia_de_dados.backend_app_pontos_turisticos.exceptions.BadRequestException; // Import necessário
 import com.inf.software_para_persistencia_de_dados.backend_app_pontos_turisticos.exceptions.ResourceNotFoundException;
 import com.inf.software_para_persistencia_de_dados.backend_app_pontos_turisticos.repositories.FotoRepository;
 import com.inf.software_para_persistencia_de_dados.backend_app_pontos_turisticos.repositories.PontoTuristicoRepository;
@@ -42,6 +43,11 @@ public class FotoService {
     public Foto salvarFoto(MultipartFile arquivo, Long pontoId) throws IOException {
         PontoTuristico ponto = pontoTuristicoRepository.findById(pontoId)
                 .orElseThrow(() -> new ResourceNotFoundException("Ponto turístico não encontrado"));
+
+        long qtdeFotos = fotoRepository.countByPontoTuristico(ponto);
+        if (qtdeFotos >= 10) {
+            throw new BadRequestException("Limite máximo de 10 fotos por ponto turístico atingido.");
+        }
 
         String nomeArquivoOriginal = arquivo.getOriginalFilename();
         String extensao = nomeArquivoOriginal != null && nomeArquivoOriginal.contains(".")
