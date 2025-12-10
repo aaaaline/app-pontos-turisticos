@@ -17,20 +17,23 @@ const HospedagensList = ({ pontoId }) => {
   }, [pontoId]);
 
   const loadHospedagens = async () => {
-    try {
-      setLoading(true);
-      const response = await hospedagensAPI.getAll();
-      const hospedagensData = response.data || [];
-      const hospedagensDoPonto = hospedagensData.filter(h => 
-        h.pontoTuristico && h.pontoTuristico.id === parseInt(pontoId)
-      );
-      setHospedagens(hospedagensDoPonto);
-    } catch (err) {
-      console.error('Erro ao carregar hospedagens:', err);
-    } finally {
-      setLoading(false);
-    }
-  };
+  try {
+    setLoading(true);
+    const response = await hospedagensAPI.getAll();
+    const hospedagensData = Array.isArray(response.data) ? response.data : [];
+
+    const hospedagensDoPonto = hospedagensData.filter(
+      (h) => h.pontoTuristicoId === parseInt(pontoId, 10)
+    );
+
+    setHospedagens(hospedagensDoPonto);
+
+  } catch (err) {
+    console.error('Erro ao carregar hospedagens:', err);
+  } finally {
+    setLoading(false);
+  }
+};
 
   const getTipoLabel = (tipo) => {
     const tipos = {

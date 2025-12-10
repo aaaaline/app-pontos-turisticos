@@ -33,20 +33,53 @@ public class PontoTuristicoController {
     }
 
     @GetMapping
-    public ResponseEntity<Page<PontoTuristico>> listar(
+    public ResponseEntity<Page<PontoTuristicoDTO>> listar(
             @RequestParam(required = false) String nome,
             @RequestParam(required = false) String cidade,
             @RequestParam(required = false) String estado,
             @RequestParam(required = false) String tipo,
             @PageableDefault(page = 0, size = 10, sort = "nome", direction = Sort.Direction.ASC) Pageable pageable
     ) {
-        return ResponseEntity.ok(service.findAll(nome, cidade, estado, tipo, pageable));
+        Page<PontoTuristico> page = service.findAll(nome, cidade, estado, tipo, pageable);
+
+        Page<PontoTuristicoDTO> dtoPage = page.map(p -> {
+            PontoTuristicoDTO dto = new PontoTuristicoDTO();
+            dto.setId(p.getId());
+            dto.setNome(p.getNome());
+            dto.setDescricao(p.getDescricao());
+            dto.setCidade(p.getCidade());
+            dto.setEstado(p.getEstado());
+            dto.setPais(p.getPais());
+            dto.setEndereco(p.getEndereco());
+            dto.setLatitude(p.getLatitude());
+            dto.setLongitude(p.getLongitude());
+            dto.setComoChegarTexto(p.getComoChegarTexto());
+            dto.setTipo(p.getTipo());
+            return dto;
+        });
+
+        return ResponseEntity.ok(dtoPage);
     }
 
     // --- Find By ID ---
     @GetMapping("/{id}")
-    public ResponseEntity<PontoTuristico> buscarPorId(@PathVariable Long id) {
-        return ResponseEntity.ok(service.findById(id));
+    public ResponseEntity<PontoTuristicoDTO> buscarPorId(@PathVariable Long id) {
+        PontoTuristico p = service.findById(id);
+
+        PontoTuristicoDTO dto = new PontoTuristicoDTO();
+        dto.setId(p.getId());
+        dto.setNome(p.getNome());
+        dto.setDescricao(p.getDescricao());
+        dto.setCidade(p.getCidade());
+        dto.setEstado(p.getEstado());
+        dto.setPais(p.getPais());
+        dto.setEndereco(p.getEndereco());
+        dto.setLatitude(p.getLatitude());
+        dto.setLongitude(p.getLongitude());
+        dto.setComoChegarTexto(p.getComoChegarTexto());
+        dto.setTipo(p.getTipo());
+
+        return ResponseEntity.ok(dto);
     }
 
     // --- Update ---

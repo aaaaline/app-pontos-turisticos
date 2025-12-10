@@ -20,39 +20,40 @@ const Home = ({ onAuthClick }) => {
   }, []);
 
   const loadPontos = async () => {
-    try {
-      setError("");
-      const response = await pontosAPI.getAll();
-      const pontosData = response.data || [];
-      
-      const pontosComAvaliacoes = await Promise.all(
-        pontosData.map((ponto) => {
-          try {
-            const mediaResponse = avaliacoesAPI.getMedia(ponto.id);
-            return {
-              ...ponto,
-              mediaNotas: mediaResponse.data || 0,
-              totalAvaliacoes: 0,
-              imagemPrincipal: ponto.imagemPrincipal || "https://via.placeholder.com/400x300?text=Sem+Imagem"
-            };
-          } catch (err) {
-            return {
-              ...ponto,
-              mediaNotas: 0,
-              totalAvaliacoes: 0,
-              imagemPrincipal: "https://via.placeholder.com/400x300?text=Sem+Imagem"
-            };
-          }
-        })
-      );
-      
-      setPontos(pontosComAvaliacoes);
-      setFilteredPontos(pontosComAvaliacoes);
-    } catch (err) {
-      console.error("Erro ao carregar pontos:", err);
-      setError("Erro ao carregar pontos turísticos. Tente novamente.");
-    }
-  };
+  try {
+    setError("");
+    const response = await pontosAPI.getAll();
+    const page = response.data || {};
+    const pontosData = Array.isArray(page.content) ? page.content : [];
+
+    const pontosComAvaliacoes = await Promise.all(
+      pontosData.map(async (ponto) => {
+        try {
+          const mediaResponse = await avaliacoesAPI.getMedia(ponto.id);
+          return {
+            ...ponto,
+            mediaNotas: mediaResponse.data ?? 0,
+            totalAvaliacoes: 0,
+          };
+        } catch {
+          return {
+            ...ponto,
+            mediaNotas: 0,
+            totalAvaliacoes: 0,
+
+          };
+        }
+      })
+    );
+
+    setPontos(pontosComAvaliacoes);
+    setFilteredPontos(pontosComAvaliacoes);
+  } catch (err) {
+    console.error("Erro ao carregar pontos:", err);
+    setError("Erro ao carregar pontos turísticos. Tente novamente.");
+  }
+};
+
 
   const handleSearch = (searchTerm) => {
     if (!searchTerm.trim()) {

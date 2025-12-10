@@ -181,7 +181,7 @@ const PontoDetalhesPage = ({ onAuthClick }) => {
               ))}
             </div>
             <span style={styles.ratingText}>
-              {ponto.mediaNotas.toFixed(1)} ({ponto.totalAvaliacoes} avaliações)
+              {ponto.mediaNotas.toFixed(1)}
             </span>
           </div>
 
