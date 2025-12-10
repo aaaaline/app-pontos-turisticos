@@ -2,6 +2,7 @@ package com.inf.software_para_persistencia_de_dados.backend_app_pontos_turistico
 
 import com.inf.software_para_persistencia_de_dados.backend_app_pontos_turisticos.dto.PontoTuristicoDTO;
 import com.inf.software_para_persistencia_de_dados.backend_app_pontos_turisticos.entities.PontoTuristico;
+import com.inf.software_para_persistencia_de_dados.backend_app_pontos_turisticos.exceptions.BadRequestException;
 import com.inf.software_para_persistencia_de_dados.backend_app_pontos_turisticos.repositories.PontoTuristicoRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -26,11 +27,8 @@ public class PontoTuristicoService {
                 .orElseThrow(() -> new RuntimeException("Ponto turístico não encontrado"));
     }
 
-    @CacheEvict(value = "pontosTuristicos", key = "#id")
-    public PontoTuristico update(Long id, PontoTuristicoDTO dto) {
-        PontoTuristico existing = findById(id);
-        updateEntityFromDto(existing, dto);
-        return repo.save(existing);
+    public List<PontoTuristico> findAllList() {
+        return repo.findAll();
     }
 
     @CacheEvict(value = "pontosTuristicos", key = "#id")
@@ -39,23 +37,39 @@ public class PontoTuristicoService {
         repo.delete(entity);
     }
 
-    public PontoTuristico create(PontoTuristicoDTO dto) {
-        PontoTuristico entity = new PontoTuristico();
-        updateEntityFromDto(entity, dto);
-        return repo.save(entity);
-    }
-
-    public Page<PontoTuristico> findAll(String nome, String cidade, String estado, String tipo, Pageable pageable) {
+    public Page<PontoTuristico> findAll(String nome, String cidade, String estado, String tipo, Double mediaMinima, Pageable pageable) {
         String nomePattern = nome == null ? null : "%" + nome.toLowerCase() + "%";
         String cidadePattern = cidade == null ? null : "%" + cidade.toLowerCase() + "%";
         String estadoPattern = estado == null ? null : "%" + estado.toLowerCase() + "%";
         String tipoPattern = tipo == null ? null : "%" + tipo.toLowerCase() + "%";
 
-        return repo.buscarComFiltros(nomePattern, cidadePattern, estadoPattern, tipoPattern, pageable);
+        return repo.buscarComFiltros(nomePattern, cidadePattern, estadoPattern, tipoPattern, mediaMinima, pageable);
     }
 
-    public List<PontoTuristico> findAllList() {
-        return repo.findAll();
+    public PontoTuristico create(PontoTuristicoDTO dto) {
+        // Validação de Unicidade (Nome + Cidade)
+        if (repo.existsByNomeIgnoreCaseAndCidadeIgnoreCase(dto.getNome(), dto.getCidade())) {
+            throw new BadRequestException(
+                    "Já existe um ponto turístico com o nome '" + dto.getNome() + "' na cidade '" + dto.getCidade() + "'."
+            );
+        }
+
+        PontoTuristico entity = new PontoTuristico();
+        updateEntityFromDto(entity, dto);
+        return repo.save(entity);
+    }
+
+    @CacheEvict(value = "pontosTuristicos", key = "#id")
+    public PontoTuristico update(Long id, PontoTuristicoDTO dto) {
+        PontoTuristico existing = findById(id);
+        if (repo.existsByNomeIgnoreCaseAndCidadeIgnoreCaseAndIdNot(dto.getNome(), dto.getCidade(), id)) {
+            throw new BadRequestException(
+                    "Já existe um ponto turístico com o nome '" + dto.getNome() + "' na cidade '" + dto.getCidade() + "'."
+            );
+        }
+
+        updateEntityFromDto(existing, dto);
+        return repo.save(existing);
     }
 
     private void updateEntityFromDto(PontoTuristico entity, PontoTuristicoDTO dto) {

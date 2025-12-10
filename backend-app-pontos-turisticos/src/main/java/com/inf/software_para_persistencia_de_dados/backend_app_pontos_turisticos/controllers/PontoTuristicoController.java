@@ -38,9 +38,10 @@ public class PontoTuristicoController {
             @RequestParam(required = false) String cidade,
             @RequestParam(required = false) String estado,
             @RequestParam(required = false) String tipo,
+            @RequestParam(required = false) Double mediaMinima, // NOVO PARÂMETRO
             @PageableDefault(page = 0, size = 10, sort = "nome", direction = Sort.Direction.ASC) Pageable pageable
     ) {
-        return ResponseEntity.ok(service.findAll(nome, cidade, estado, tipo, pageable));
+        return ResponseEntity.ok(service.findAll(nome, cidade, estado, tipo, mediaMinima, pageable));
     }
 
     // --- Find By ID ---

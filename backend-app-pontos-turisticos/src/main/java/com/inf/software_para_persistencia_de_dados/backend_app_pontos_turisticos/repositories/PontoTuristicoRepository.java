@@ -15,12 +15,18 @@ public interface PontoTuristicoRepository extends JpaRepository<PontoTuristico, 
             "(:nome IS NULL OR LOWER(p.nome) LIKE :nome) AND " +
             "(:cidade IS NULL OR LOWER(p.cidade) LIKE :cidade) AND " +
             "(:estado IS NULL OR LOWER(p.estado) LIKE :estado) AND " +
-            "(:tipo IS NULL OR LOWER(p.tipo) LIKE :tipo)")
+            "(:tipo IS NULL OR LOWER(p.tipo) LIKE :tipo) AND " +
+            "(:mediaMinima IS NULL OR p.mediaAvaliacao >= :mediaMinima)")
     Page<PontoTuristico> buscarComFiltros(
             @Param("nome") String nome,
             @Param("cidade") String cidade,
             @Param("estado") String estado,
             @Param("tipo") String tipo,
+            @Param("mediaMinima") Double mediaMinima,
             Pageable pageable
     );
+
+    boolean existsByNomeIgnoreCaseAndCidadeIgnoreCase(String nome, String cidade);
+
+    boolean existsByNomeIgnoreCaseAndCidadeIgnoreCaseAndIdNot(String nome, String cidade, Long id);
 }
