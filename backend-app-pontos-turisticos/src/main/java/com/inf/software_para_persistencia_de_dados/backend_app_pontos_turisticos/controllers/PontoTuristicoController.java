@@ -80,22 +80,6 @@ public class PontoTuristicoController {
         dto.setComoChegarTexto(p.getComoChegarTexto());
         dto.setTipo(p.getTipo());
 
-        if (p.getFotos() != null) {
-            List<FotoDTO> fotosDto = p.getFotos().stream()
-                    .map(f -> {
-                        FotoDTO fd = new FotoDTO();
-                        fd.setId(f.getId());
-                        fd.setUrl(f.getUrl());
-                        fd.setDescricao(f.getDescricao());
-                        fd.setPontoTuristicoId(
-                                f.getPontoTuristico() != null ? f.getPontoTuristico().getId() : null
-                        );
-                        return fd;
-                    })
-                    .toList();
-            dto.setFotos(fotosDto);
-        }
-
         return ResponseEntity.ok(dto);
     }
 

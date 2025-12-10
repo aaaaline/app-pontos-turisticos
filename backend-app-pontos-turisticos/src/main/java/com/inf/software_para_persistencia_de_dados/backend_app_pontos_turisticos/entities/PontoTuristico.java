@@ -4,6 +4,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.Id;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Table;
@@ -44,6 +45,7 @@ public class PontoTuristico {
     private String comoChegarTexto;
 
     @OneToMany(mappedBy = "pontoTuristico", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnore
     private List<Hospedagem> hospedagens = new ArrayList<>();
 
     @Column(name = "created_at")
@@ -52,6 +54,7 @@ public class PontoTuristico {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
     @OneToMany(mappedBy = "pontoTuristico", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnore
     private List<Foto> fotos = new ArrayList<>();
 
     public PontoTuristico() {
