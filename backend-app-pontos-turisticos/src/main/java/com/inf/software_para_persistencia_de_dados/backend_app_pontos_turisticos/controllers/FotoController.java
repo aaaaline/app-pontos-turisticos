@@ -30,32 +30,30 @@ public class FotoController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Foto> buscarPorId(@PathVariable Long id) {
+    public ResponseEntity<Foto> buscarPorId(@PathVariable String id) {
         return ResponseEntity.ok(service.findById(id));
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<Foto> atualizar(
-            @PathVariable Long id,
+            @PathVariable String id,
             @RequestBody FotoDTO dto
     ) {
         return ResponseEntity.ok(service.update(id, dto));
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deletar(@PathVariable Long id) {
+    public ResponseEntity<Void> deletar(@PathVariable String id) {
         service.delete(id);
         return ResponseEntity.noContent().build();
     }
 
-    // ----------- UPLOAD DE FOTO REAL -----------
     @PostMapping("/upload/{pontoId}")
     public ResponseEntity<?> uploadFoto(
             @PathVariable Long pontoId,
             @RequestParam("arquivo") MultipartFile arquivo
     ) {
         try {
-            // Chama o método que salva no disco e cria o registro no banco
             Foto fotoSalva = service.salvarFoto(arquivo, pontoId);
             return ResponseEntity.ok(fotoSalva);
         } catch (Exception e) {
