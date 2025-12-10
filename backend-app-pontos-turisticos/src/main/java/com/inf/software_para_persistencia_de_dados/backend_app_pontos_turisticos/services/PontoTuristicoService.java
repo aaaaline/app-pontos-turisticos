@@ -21,8 +21,6 @@ public class PontoTuristicoService {
         this.repo = repo;
     }
 
-    // ... (findById, findAll, delete mantidos iguais) ...
-
     @Cacheable(value = "pontosTuristicos", key = "#id")
     public PontoTuristico findById(Long id) {
         return repo.findById(id)
@@ -39,13 +37,13 @@ public class PontoTuristicoService {
         repo.delete(entity);
     }
 
-    public Page<PontoTuristico> findAll(String nome, String cidade, String estado, String tipo, Pageable pageable) {
+    public Page<PontoTuristico> findAll(String nome, String cidade, String estado, String tipo, Double mediaMinima, Pageable pageable) {
         String nomePattern = nome == null ? null : "%" + nome.toLowerCase() + "%";
         String cidadePattern = cidade == null ? null : "%" + cidade.toLowerCase() + "%";
         String estadoPattern = estado == null ? null : "%" + estado.toLowerCase() + "%";
         String tipoPattern = tipo == null ? null : "%" + tipo.toLowerCase() + "%";
 
-        return repo.buscarComFiltros(nomePattern, cidadePattern, estadoPattern, tipoPattern, pageable);
+        return repo.buscarComFiltros(nomePattern, cidadePattern, estadoPattern, tipoPattern, mediaMinima, pageable);
     }
 
     public PontoTuristico create(PontoTuristicoDTO dto) {

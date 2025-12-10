@@ -43,6 +43,9 @@ public class PontoTuristico {
     @Column(columnDefinition = "text")
     private String comoChegarTexto;
 
+    @Column(name = "media_avaliacao")
+    private Double mediaAvaliacao = 0.0;
+
     @OneToMany(mappedBy = "pontoTuristico", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Hospedagem> hospedagens = new ArrayList<>();
 
@@ -108,4 +111,7 @@ public class PontoTuristico {
 
     public String getTipo() { return tipo; }
     public void setTipo(String tipo) { this.tipo = tipo; }
+
+    public Double getMediaAvaliacao() { return mediaAvaliacao; }
+    public void setMediaAvaliacao(Double mediaAvaliacao) { this.mediaAvaliacao = mediaAvaliacao; }
 }
