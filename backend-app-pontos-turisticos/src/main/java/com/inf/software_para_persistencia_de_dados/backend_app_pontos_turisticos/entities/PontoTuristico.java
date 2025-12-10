@@ -51,6 +51,8 @@ public class PontoTuristico {
 
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
+    @OneToMany(mappedBy = "pontoTuristico", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Foto> fotos = new ArrayList<>();
 
     public PontoTuristico() {
         // Construtor vazio - ID será gerado automaticamente pelo banco
@@ -108,4 +110,7 @@ public class PontoTuristico {
 
     public String getTipo() { return tipo; }
     public void setTipo(String tipo) { this.tipo = tipo; }
+
+    public List<Foto> getFotos() { return fotos; }
+    public void setFotos(List<Foto> fotos) { this.fotos = fotos; }
 }

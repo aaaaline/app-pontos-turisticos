@@ -1,5 +1,6 @@
 package com.inf.software_para_persistencia_de_dados.backend_app_pontos_turisticos.controllers;
 
+import com.inf.software_para_persistencia_de_dados.backend_app_pontos_turisticos.dto.FotoDTO;
 import com.inf.software_para_persistencia_de_dados.backend_app_pontos_turisticos.dto.PontoTuristicoDTO;
 import com.inf.software_para_persistencia_de_dados.backend_app_pontos_turisticos.entities.PontoTuristico;
 import com.inf.software_para_persistencia_de_dados.backend_app_pontos_turisticos.services.ExportacaoImportacaoService;
@@ -78,6 +79,22 @@ public class PontoTuristicoController {
         dto.setLongitude(p.getLongitude());
         dto.setComoChegarTexto(p.getComoChegarTexto());
         dto.setTipo(p.getTipo());
+
+        if (p.getFotos() != null) {
+            List<FotoDTO> fotosDto = p.getFotos().stream()
+                    .map(f -> {
+                        FotoDTO fd = new FotoDTO();
+                        fd.setId(f.getId());
+                        fd.setUrl(f.getUrl());
+                        fd.setDescricao(f.getDescricao());
+                        fd.setPontoTuristicoId(
+                                f.getPontoTuristico() != null ? f.getPontoTuristico().getId() : null
+                        );
+                        return fd;
+                    })
+                    .toList();
+            dto.setFotos(fotosDto);
+        }
 
         return ResponseEntity.ok(dto);
     }
